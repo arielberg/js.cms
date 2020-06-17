@@ -1,14 +1,7 @@
 [
-    {"key":"siteName","ui":0,"t":{"en":"Movement for Governability and Democracy","he":"התנועה למשילות ודמוקרטיה"}},
-    {"key":"logout","ui":0,"t":{"en":"logout","he":"התנתק"}},
-    {"key":"viewFile","ui":0,"t":{"en":"View File","he":"לצפייה בקובץ"}},
-    {"key":"translate","ui":0,"t":{"en":"Translate","he":"תרגומים"}},
-    {"key":"siteName","ui":0,"t":{"en":"The Movement for Governance and Democracy","he":"התנועה למשילות ודמוקרטיה"}},
-    {"key":"contactPageTitle","description":"כותרת דף - צור קשר","ui":1,"t":{"en":"Contact Us","he":"צור קשר"}},
-    {"key":"donationsPageTitle","description":"כותרת דף - תרומות","ui":1,"t":{"en":"Becoume our partner","he":"השותפות שלכם חשובה לנו"}},
-    {"key":"contactUs","description":"תפריט עליון - צור קשר","ui":1,"t":{"en":"Contact Us","he":"צור קשר"}},
-    {"key":"Donations","description":"תפריט עליון - תרומות","ui":1,"t":{"en":"Donations","he":"תרומות"}},
-    {"key":"switchLanguage","description":"תפריט עליון - החלפת שפה","ui":1,"t":{"en":"עברית","he":"English"}},
-    {"key":"search","description":"תפריט עליון - חיפוש","ui":1,"t":{"en":"Search","he":"חיפוש"}},
-    {"key":"slogan","description":"סלוגן","ui":1,"t":{"en":"The Movement for Governance and Democracy creating reality","he":"התנועה למשילות ודמוקרטיה יוצרים מציאות"}}
+    {"key":"logout","ui":0,"t":{"en":"logout"}},
+    {"key":"viewFile","ui":0,"t":{"en":"View File"}},
+    {"key":"translate","ui":0,"t":{"en":"Translate"}},
+    {"key":"siteName","ui":1,"t":{"en":"Js CMS"}},
+    {"key":"search","description":"searchbox placeholedr","ui":1,"t":{"en":"Search","he":"Search"}}
 ]
