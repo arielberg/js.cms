@@ -116,7 +116,8 @@ export let showMessage = function() {
 }
 
 export let errorHandler = function( error ) {
-  console.log(error);
+
+  console.error(error);
 
   let errors = [];
   if ( localStorage.getItem('latest_errors' ) ) {
@@ -127,7 +128,7 @@ export let errorHandler = function( error ) {
   localStorage.setItem('latest_errors', JSON.stringify(errors) );
 
   if( error.message ) {
-    addMessage( error.message+' -- '+(new Error().stack) , 'danger');
+    addMessage( error.message , 'danger');
   }
   else {
     addMessage( error , 'danger');
