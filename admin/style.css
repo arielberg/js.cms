@@ -1,10 +1,10 @@
 :root {
   --main-bg-color: #f1faee;
-  --sidebar-color: #457b9d;
+  --sidebar-color: #656;
   --color-dark: #1d3557;
 }
 * {
-    text-align: right;
+    text-align: left;
     font-size: 12px;
   }
 body {
@@ -69,7 +69,7 @@ h1 {
       width: 250px;
       position: fixed;
       top: 0;
-      right: 0;
+      left: 0;
       height: 100vh;
       z-index: 999;
       background: var(--sidebar-color);
@@ -182,7 +182,7 @@ h1 {
     line-height: 20px;
     padding:5px;
     width:20px;
-    text-align: right;
+    text-align: left;
   }
 
   td:nth-child(3) {
@@ -192,8 +192,8 @@ h1 {
 
   .loginForm input[type=submit] {
       margin-top: 16px;
-      float: left;
-      margin-left: 20px;
+      float: right;
+      margin-right: 20px;
       background-color: #89f;
       padding: 7px 20px;
       font-weight: 500;
@@ -215,7 +215,7 @@ h1 {
 
   .form-element.id input {
     background-color: transparent;
-    padding-right: 10px;
+    padding-left: 10px;
     border: 0 none;
   }
 
@@ -244,14 +244,14 @@ h1 {
 #translaitonInterface .langItem textarea {
   display: inline-block;
   width: 700px;
-  margin-right: 15px;
+  margin-left: 15px;
 }
 .form-element.file .preview {
   background-image: url(../assets/images/attachments.png);
   height: 30px;
   background-repeat: no-repeat;
-  background-position: right;
-  padding-right: 35px;
+  background-position: left;
+  padding-left: 35px;
   line-height: 30px;
   margin-bottom: 16px;
 }
