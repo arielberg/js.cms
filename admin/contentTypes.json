@@ -1,0 +1,47 @@
+[
+    {  
+        "name":"post",
+        "label":"כתבה",
+        "labelPlural":"כתבות",
+        "labelDefinedPlural":"הכתבות",
+        "urlPrefix":"post/",
+        "fields":[
+            {"name":"image","label":"תמונה","type":"image", "i18n":false},
+            {"name":"body","label":"תוכן","type":"wysiwyg", "placeholder":"גוף הפוסט"}
+        ]
+    },
+    {  
+        "name":"news-item",
+        "label":"פריט חדשות",
+        "urlPrefix":"news-item/",
+        "labelPlural":"פריטי חדשות",
+        "labelDefinedPlural":"פריטי החדשות",
+        "fields":[
+            {"name":"publisher","label":"מפרסם","type":"select","default":"other", "values":{"inn":"ערוץ 7","maariv":"מעריב","news1":"News 1","walla":"וואלה","srugim":"סרוגים","nrg":"NRG","other":"אחר"}, "i18n":false},
+            {"name":"date","label":"תאריך פרסום","type":"date", "i18n":false},
+            {"name":"link","label":"כתובת הכתבה","type":"url", "i18n":false}            
+        ]
+    },
+    {  
+        "name":"member",
+        "label":"חבר צוות",
+        "labelPlural":"חברי צוות",
+        "labelDefinedPlural":"חברי הצוות",
+        "urlPrefix":"team-member/",
+        "fields":[
+            {"name":"about","label":"אודות","type":"wysiwyg", "placeholder":"גוף הפוסט"},
+            {"name":"image","label":"תמונה","type":"image", "i18n":false}
+        ]
+    },
+    {  
+        "name":"papers",
+        "label":"ניירות עמדה",
+        "urlPrefix":"papers/",
+        "labelPlural":"ניירות עמדה",
+        "labelDefinedPlural":"ניירות העמדה",
+        "fields":[
+            {"name":"body","label":"תקציר","type":"wysiwyg", "placeholder":"גוף הפוסט"},
+            {"name":"paper","label":"מסמך","type":"file", "i18n": false}
+        ]
+    }
+]

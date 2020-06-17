@@ -1,0 +1,134 @@
+<html>
+    <head>
+        <script src="../admin/scripts/ocktocat.js" ></script>
+        <script>
+            let octo = new Octokat({token: 'f3d256c82d498c7c59db225cc1495779996def82'});
+            var repo = octo.repos('arielberg', 'meshilut');
+
+            function uploadFile(uploader) {
+
+
+                let fileList = uploader.files;
+                var reader = new FileReader();
+
+                reader.onload = function(e) {                     
+                    var contents = e.target.result;
+                    var base64result = reader.result.substr(reader.result.indexOf(',') + 1);                  
+                    var files = [ {path: 'test/index.txt', content:btoa('aaaaa')},
+                                  {path: 'test/img2.jpg', content:base64result, type:'image' } ] 
+
+                    repo.git.refs('heads/master').fetch()
+                    .then(main=> {
+                        Promise
+                            .all(  
+                                files.map( fileData => {
+                                    if (fileData.type=='image') {
+                                        return upsertImage(fileData.path, fileData.content);
+                                    }
+                                    else {
+                                        return upsertBlob(fileData.path, fileData.content);
+                                    }                               
+                                }) 
+                            )
+                            .then( filesTree =>{
+                                repo.git.trees.create({
+                                tree: filesTree,
+                                base_tree: main.object.sha
+                                }).then( tree => {
+                                return repo.git.commits.create({
+                                    message: 'hello world',
+                                    tree: tree.sha,
+                                    parents: [main.object.sha] })
+                                }).then( commit => {
+                                    main.update({sha: commit.sha});
+                                });
+                            });  
+                    });
+                }
+                reader.readAsDataURL(fileList[0]);
+            }
+
+            function upsertBlob(path, content ) {
+                return repo.git.blobs
+                    .create({ content: content })
+                    .then(createdBlob => {
+                        return { path: path,   
+                                 sha: createdBlob.sha,
+                                 mode: "100644",
+                                 type: "blob" }
+                    });
+            }
+
+            function upsertImage(path, base64Content ) {
+                
+                return repo.contents(path).fetch()
+                            .then(existsFile=>{
+                                    return existsFile.sha;
+                            })
+                            .catch( e=> false )
+                            .then( lastcommit =>{        
+                                    
+                                var config = {
+                                    message: 'Updating file',
+                                    content: base64Content                            
+                                };
+
+                                if ( lastcommit ) {
+                                    config.sha = lastcommit;   
+                                }
+                                return repo.contents(path)
+                                    .add(config)
+                                    .then( info => {
+                                        return { path: path,   
+                                            sha: info.commit.sha,
+                                            mode: "100644", 
+                                            type: "commit" }                        
+                                    });
+                            });
+            }
+            
+            upsertImage('test/ttt.txt', btoa('base64Content') );
+
+           // repo.fetch().then(e=>{console.log(e);});
+
+           
+
+
+            /*
+
+            repo.git.refs('heads/master').fetch()
+            .then( res => { console.log(res); res.fetch('test/img2.jpg')})
+            .then( res => console.log(res))
+
+            
+           
+             /*
+            repo.contents('test/img2.jpg')
+                .read()
+                .then(e=>{ console.log(e); return e.body})
+                .then(e=>console.log(e));
+
+           
+            repo.commits
+                .fetch()
+                .then(e=>{ console.log(e); return e.body})
+                .then(e=>console.log(e));
+            /*
+            repo.git.blobs
+                .create({"content":"Hello","encoding":"utf-8"})
+                .then(e=>{ console.log(e); return e.body})
+                .then(e=>console.log(e));
+
+
+            /*
+
+            repo.contents('test/img2.jpg')
+            .read()
+            .then(e=>{ console.log(e); return e.body})
+            .then(e=>console.log(e));
+            */
+        </script>
+    </head>
+    <body><input type='file' onchange="uploadFile(this)" />></body>
+</html>
+

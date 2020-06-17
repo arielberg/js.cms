@@ -1,0 +1,416 @@
+
+:root {
+    --page-inner-width:1100px; 
+}
+
+.inner {
+    width:var(--page-inner-width);
+    margin:0 auto;
+}
+
+#main.itemPage {
+    margin: 0;
+    max-width: 100%;
+    min-width: 100%;
+    width: 100%;
+}
+
+#main section.movie1 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 353px;
+    position: relative;
+    background:#111111;
+}
+
+#main section.movie1::after {
+    content: ' ';
+    display: block;
+    z-index: 1;
+    opacity: 0.3;
+    background: url(images/contact.png) center center ;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+}
+
+#main section.movie1::after {
+    background: #0280aF;
+    opacity: 0.4;
+}
+
+#main section.movie1 {
+    background: none;
+    position: relative;
+    overflow: hidden;
+}
+
+#main section.movie1 .video-bgr {
+    position: absolute;
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    opacity: 0.7;
+    z-index:-1;
+} 
+
+#main section.movie1 .shape-bottom {
+    transform: rotate(180deg);
+    width: 100%;
+    flex: 1;
+    position: relative;
+    top: 20px;
+    z-index: 10;
+}
+
+#main section.summary-section {
+    position: relative;
+    margin-top: 20px;
+    text-align: center;
+    background:   linear-gradient(130deg, #0700DD 0%, #00F2FF 89%);
+    color: #fff;
+}
+
+#main section.summary-section .center-section h1 {
+    font-family: "Varela Round", Sans-serif;
+    font-size: 45px;
+    font-weight: 300;
+    text-transform: capitalize;
+    line-height: 1.2em;
+    margin: 0 0 20px  0 ;
+}
+
+#main section.summary-section .center-section p {
+    color: #E3E5EA;
+    font-family: "Heebo", Sans-serif;
+    font-size: 16px;
+    font-weight: 200;
+    line-height: 1.4em;
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+#main section.summary-section:after {
+    content: ' ';
+    display: block;
+    z-index: 1;
+    opacity: 0.3;
+    background: url(../../assets/images/FP_BlockBG.png) center center;
+    opacity: 0.15;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 90%;
+    background-size: cover;
+}
+
+#main section.summary-section .center-section {
+    width: 580px;
+    margin: 0 auto;
+    padding-top: 20px;
+}
+
+#main section.summary-section .shape-bottom {
+    transform: rotate(180deg);
+    width: 100%;
+    height: 120px;
+    fill: #fff;
+    overflow: hidden;
+    margin-top: -40px;
+}
+
+#main section.movie1 .shape-bottom .shape-fill {
+    fill:#fff;
+}
+
+#main section.summary-section .shape-bottom svg{
+    transform: scaleX(2.7) rotateY(180deg);
+    width: 68%;
+}
+
+#main section.summary-section h1 {
+    font-family: "Varela Round", Sans-serif;
+    font-size: 45px;
+}
+
+#main section.summary-section .video {
+   border-radius: 25px 28px 349px 22px;
+   border: none;
+   width: 580px;
+   height: 326px;
+   margin: auto;
+}
+
+/*  MOTIVES  */
+#main section.motives {
+    display: flex;
+    padding-top:30px;
+}
+
+#main section.motives img {
+   width: 448px;
+   height: 261px;
+   border-radius: 300px 100px 100px 100px;
+   box-shadow: 0px 0px 30px 0px rgba(0,0,0,0.12);
+}
+
+#main section.motives img:nth-child(2) {
+  border-radius: 100px 100px 300px 100px;
+  margin: 20px 130px 0 0;
+}
+
+#main section.motives .col1 {
+    width: 500px;
+    margin-left: 20px;
+    display: inline-block;;
+}
+#main section.motives .col2 {
+    display: inline-block;
+    max-width: 500px;
+}
+
+#main section.motives h4 {
+    color: #00dafc;
+    font-family: "Heebo", Sans-serif;
+    font-size: 20px;
+    font-weight: 300;
+}
+
+#main section.motives p {
+    color: #3d4459;
+    font-family: "Heebo", Sans-serif;
+    font-size: 16px;
+    font-weight: 200;
+    margin: 10px 0 20px 0;
+}
+
+/* MORE ABOUT US */
+#main section.more-aboutus  {
+    margin: 30px 0;
+    display: flex;
+    flex-direction: column;
+    background-image: linear-gradient(250deg, #167f3f 0%, #0b207f 94%);
+    opacity: 0.81;
+
+}
+
+#main section.more-aboutus .inner {
+    flex: 1;
+    justify-content: center;
+}
+
+#main section.more-aboutus h2 {
+    font-family: "Amatic SC", Sans-serif;
+    text-align: center;
+    color: #fff;
+    font-size: 65px;
+    font-weight: 400;
+}
+#main section.more-aboutus .shape-bottom {
+    width: 100%;
+    fill: #fff;   
+}
+
+#main section.more-aboutus .shape-bottom svg {
+    overflow: hidden;
+    width: calc(200% + 1.3px);
+    height: 470px;
+}
+
+#main section.more-aboutus .social-icons-wrapper {
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    opacity: 1;
+}
+
+#main section.more-aboutus .social-icons-wrapper a {
+    height: 50px;
+    width: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10%;
+    margin: 3px;
+    color: #fff;
+}
+
+#main section.more-aboutus .social-icons-wrapper a:nth-child(1) {
+    background-color: #3b5998;
+}
+
+#main section.more-aboutus .social-icons-wrapper a:nth-child(2) {
+    background-color: #1da1f2;
+}
+
+#main section.more-aboutus .social-icons-wrapper a:nth-child(3) {
+    background-color :#cd201f;
+}
+
+#main section.more-aboutus .social-icons-wrapper a i {
+    font-size: 25px;
+}
+
+#main section.more-aboutus p {
+    width: 457px;
+    margin: 0 auto;
+    color: #fff;
+    text-align: center;
+}
+#main section.more-aboutus .separator {
+    background: #fff;
+    height:4px;
+    width: 40px;
+    margin: 40px auto 0;
+ }
+#main section ._shape-bottom {
+    fill: #fff;
+    overflow: hidden;
+    margin-top: -440px;
+}
+
+#main section ._shape-bottom svg{
+    width: 200%;
+    position: relative;
+    left: 50%;
+    top:10px;
+    height: 470px;
+}
+
+
+/*  WITHYOU */
+#main section.withyou h3 {
+    color: #228bd6;
+    text-align: center;
+    font-family: "Amatic SC", Sans-serif;
+    font-size: 43px;
+    font-weight: bold;
+    text-transform: capitalize;
+    margin-bottom: 34px;
+}
+
+#main section.withyou p {
+    width: 888px;
+    margin: 0 auto;
+}
+
+/*  GRID  */
+section.articles-grid   {
+    margin-top: 54px;
+}
+
+section.articles-grid  .grid {
+    box-shadow: 0px 0px 10px 4px rgba(0,0,0,0.5);
+    margin: auto;
+    display:grid;
+    width: 1120px;
+    height: 740px;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    grid-gap: 4px;
+}
+
+#main section.articles-grid .grid article { 
+    background-size: cover;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
+#main section.articles-grid .grid article::before {
+    position: absolute;
+    background-color: rgba(110, 182, 228, 0.67);
+    opacity: 0;
+    content: ' ';
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    transition: opacity 0.4s;
+}
+
+#main section.articles-grid .grid article:hover::before {
+    opacity: 1;
+}
+
+
+#main section.articles-grid .grid article a h3 {
+    color: #fff;
+}
+#main section.articles-grid .grid article a {
+    display: none;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    color: #fff;
+    font-size: 18px;
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    text-align: center;
+}
+
+#main section.articles-grid .grid article:hover a {
+    display: flex;
+}
+/* FOOTER  */
+section.quote {
+    margin-top: 20px;
+    padding: 130px 50px  50px 0;
+    background-color: #222329;
+    opacity: 0.9;
+}
+
+section.quote h3{
+    color:#fff;
+    margin-bottom: 30px;
+    font-family: "Amatic SC", Sans-serif;
+    font-size: 35px;
+    line-height: 1.5em;
+    letter-spacing: 1.2px;
+    font-weight: bold;
+    text-align: right;
+}
+section.quote .spacer {
+    background: #fff;
+    height: 5px;
+    width: 220px;
+}
+
+section.quote .author {
+    margin: 30px 0 40px 0;
+    color: #fcfcfc;
+    font-family: "Roboto", Sans-serif;
+    font-size: 18px;
+    font-weight: 100;
+    font-style: italic;
+}
+
+.articles-grid
+{
+    width: 1120px;
+    margin: 0 auto;
+}
+
+.articles-grid h2 {
+    margin: 0px 0px 0px 64px;
+    padding: 0px 28px;
+    background-color: transparent;
+    background-image: linear-gradient(110deg, #0700DD 0%, #00F2FF 99%);
+    box-shadow: -5px 5px 4px -1px rgba(0,0,0,0.5);
+    color: #fff;
+    width: auto;
+    font-family: "Heebo", Sans-serif;
+    font-weight: 200;
+    position: relative;
+    top: 70px;
+    z-index: 2;
+    font-size: 37px;
+    display: inline;
+}

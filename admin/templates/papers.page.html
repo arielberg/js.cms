@@ -1,0 +1,17 @@
+<script>
+    fetch('search/papers.json')
+        .then(res=>res.json())
+        .then(jsonItems=>{
+            jsonItems.forEach( jsonItem => {
+                let itemDiv = document.createElement('div');
+                itemDiv.className = "result-card";
+                let itemTitle = document.createElement('h3');
+                itemTitle.innerText = jsonItem.title;
+                itemDiv.append(itemTitle);
+                let itemTeaser = document.createElement('span');
+                itemTeaser.innerText = jsonItem.body;
+                itemDiv.append(itemTeaser);
+                document.getElementById('main').appendChild(itemDiv);
+            });                
+        });        
+</script> 

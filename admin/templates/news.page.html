@@ -1,0 +1,39 @@
+<script>
+
+    fetch('search/news-item.json')
+        .then(res=>res.json())
+        .then(res=>{
+            res.forEach(resultItem=>{
+                resultItem.date = new Date(resultItem.date);
+            });
+            return res;
+        })
+        .then(res=>{
+            return res.sort((a, b)=>{ return a.date >b.date });
+        })
+        .then(jsonItems=>{
+            let currentYear = '';
+           
+            jsonItems.forEach( jsonItem => {
+
+                let itemYear = jsonItem.date.getFullYear();          
+
+                let link = document.createElement('a');
+                link.href = jsonItem.link;
+                link.className = 'result-card';
+                link.innerHTML = '<img src="assets/images/'+ jsonItem.publisher + '.png" ><span>' + jsonItem.title +'</span>';
+                
+                
+                let yearDiv = document.getElementById('year_'+itemYear);
+                if ( !yearDiv ) {
+                    yearDiv = document.createElement('div');
+                    yearDiv.id = 'year_'+itemYear;
+                    yearDiv.innerHTML = '<h3>'+ itemYear + '</h3>';
+                    document.getElementById('main').appendChild(yearDiv);
+                }
+                yearDiv.appendChild(link);
+
+            });                
+        }); 
+
+</script>

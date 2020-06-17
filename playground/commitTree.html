@@ -1,0 +1,20 @@
+<script>
+    var apiurl = "https://api.github.com/repos/arielberg/meshilut/git/blobs/create";
+    var filedata = JSON.stringify({
+        "message": 'test commit',
+        "content": atob('hello world')
+    });    
+
+    var ajaxRequest = new XMLHttpRequest();
+
+    ajaxRequest.open('PUT', apiurl, true);
+    ajaxRequest.setRequestHeader('Authorization', "Token f3d256c82d498c7c59db225cc1495779996def82");
+    
+    ajaxRequest.onreadystatechange = function() {
+        if (ajaxRequest.readyState == 4) {
+            alert('Response: \n' + ajaxRequest.responseText);
+        }
+    };
+
+    ajaxRequest.send(filedata);
+</script>

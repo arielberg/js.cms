@@ -1,0 +1,41 @@
+<script>
+    function uploadFile(uploader){
+        let fileList = uploader.files;
+        var reader = new FileReader();
+        reader.onload = function(e) { 
+            var contents = e.target.result;
+            var base64result = reader.result.substr(reader.result.indexOf(',') + 1);
+            createfile('test/image7.jpg', "fetchapi - uploading a file", base64result)
+        }
+        reader.readAsDataURL(fileList[0]);
+    }
+
+    function createfile(fileName, fileMessage, fileContent) {
+        var apiurl = "https://api.github.com/repos/arielberg/meshilut/contents/" + fileName;
+        var filedata = JSON.stringify({
+            "message": fileMessage,
+            "content": fileContent
+        });    
+        fetch(apiurl, {
+            method: 'PUT', 
+            body: fileContent,
+            headers: new Headers({
+                'Authorization': 'Token f3d256c82d498c7c59db225cc1495779996def82',
+                'X-Requested-With':'XMLHttpRequest'
+            })
+        })
+        .then( response => {
+            console.log(response);
+           return response.body;
+        })
+        .then(data => {
+          console.log('Success:', data);
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+        });
+    }
+    createfile('test/test.txt', 'test 1234', 'hello world');
+
+</script>
+<input type='file' onchange="uploadFile(this)" />

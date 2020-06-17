@@ -1,0 +1,10 @@
+[{
+    'loading': {
+        'default': 'טוען נתונים...',
+        'en': 'Loading...'
+    },
+    'siteName': {
+        'default': 'התנועה למשילות ודמוקריה',
+        'en': 'Goverment & Democratcy'
+    }
+}]
