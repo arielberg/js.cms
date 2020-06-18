@@ -271,11 +271,12 @@ function translationInterface(parentElement) {
 function translatePage( items ) {
   let appSettings = utils.getGlobalVariable('appSettings'); 
   let translations = utils.getGlobalVariable('translations');
-
-  translations.forEach(translateItem=>{
-    var element = document.getElementById('t_'+translateItem.key);
-    if( element && translateItem.t[appSettings.Admin_Lanaguage]) {
-      element.innerText = translateItem.t[appSettings.Admin_Lanaguage];
+  let language = appSettings.Admin_Lanaguage ? appSettings.Admin_Lanaguage : 'en';
+  document.querySelectorAll('[data-stringid]').forEach(element => {
+    let stringId = element.getAttribute('data-stringid');
+    let translationItem = translations.find( t=>t.key == stringId );
+    if( translationItem && translationItem.t[language] ) {
+      element.innerText = translationItem.t[language];
     }
   })
   routeToCall();

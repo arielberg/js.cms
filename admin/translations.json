@@ -1,7 +1,7 @@
 [
     {"key":"logout","ui":0,"t":{"en":"logout"}},
     {"key":"viewFile","ui":0,"t":{"en":"View File"}},
-    {"key":"translate","ui":0,"t":{"en":"Translate"}},
+    {"key":"translate","ui":0,"t":{"en":"Translation Interface", "he":"ממשק תרגום"}},
     {"key":"siteName","ui":1,"t":{"en":"Js CMS"}},
     {"key":"search","description":"searchbox placeholedr","ui":1,"t":{"en":"Search","he":"Search"}}
 ]

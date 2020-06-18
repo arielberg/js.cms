@@ -109,10 +109,14 @@ h1 {
   #sidebar a {
     color:#fff;
   }
+  
+  #sidebar ul {
+    padding:0 25px;
+  }
 
   #mainArea {
     padding-top: 20px;
-    margin-right: 290px;
+    margin-left: 290px;
     width: calc( 100% - 350px );
   }
 
