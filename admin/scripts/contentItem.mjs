@@ -307,8 +307,8 @@ export function contentItemForm ( contentType , editedItem , op ) {
         switch( op ) {
           case 'edit':
             // Default fields 
-            formFields.unshift({ name: "title", label: "כותרת", type: "textfield"});
-            formFields.unshift({ name: "id", label: "מזהה", type: "id"});
+            formFields.unshift({ name: "title", label: utils.str(''), type: "textfield"});
+            formFields.unshift({ name: "id", label: utils.str('admin_fieldIdLabel'), type: "id"});
           break;
           case 'en':            
             formFields.unshift({ name: "title", label: "כותרת", type: "textfield"});

@@ -1,8 +1,11 @@
 :root {
   --main-bg-color: #f1faee;
   --sidebar-color: #656;
+  --sidebar-width: 250px;
   --color-dark: #1d3557;
+
 }
+
 * {
     text-align: left;
     font-size: 12px;
@@ -66,7 +69,7 @@ h1 {
   }
   
   #sidebar {
-      width: 250px;
+      width: var(--sidebar-width);
       position: fixed;
       top: 0;
       left: 0;
@@ -100,9 +103,17 @@ h1 {
   .hideLeftBar #mainArea [type=text] {
     padding: 5px 10px;
   }
+  #sidebar h2 {
+    color: var(--main-bg-color);
+    width: var(--sidebar-width);
+    font-size: 32px;
+    margin-top: 15px;
+    text-align: center;
+  }
 
   #sidebar h3 {
-    color:var(--main-bg-color);
+    color: var(--main-bg-color);
+    width: var(--sidebar-width);
     margin-top: 15px;
   }
 
@@ -206,7 +217,7 @@ h1 {
   
   .loginForm input[type=text] {
     min-width: auto;
-    padding: 2px 10px;
+    padding: 5px 15px;
   }
 
   .loginForm input[name=token] {
@@ -218,9 +229,6 @@ h1 {
   }
 
   .form-element.id input {
-    background-color: transparent;
-    padding-left: 10px;
-    border: 0 none;
   }
 
   .form-element input {

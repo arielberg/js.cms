@@ -39,17 +39,21 @@ export function routeToCall(){
         if( utils.getGlobalVariable('contentTypes').length > 0 ) {
           let contentTypesSingle = '(' + utils.getGlobalVariable('contentTypes').map(a=>a.name).join('|') +')';
           regexExpressions.itemManagment = new RegExp('#'+contentTypesSingle+'\\/([^\/]+)',"i");
-             
+          
           utils.getGlobalVariable('contentTypes').reverse().forEach(contentType => {
             document.getElementById('sidebarLinks').insertAdjacentHTML('afterbegin',  `
-              <li><h3>${contentType.labelPlural}</h3></li>
-              <li>
-                <a class="nav-link" href="#${contentType.name}/all">כל ${contentType.labelDefinedPlural}</a>
+              <li id='${contentType.name}_type_menu' class='contentTypeLinks'>
+                <h3>${contentType.labelPlural}</h3>
+                <ul>
+                  <li>
+                    <a class="nav-link" href="#${contentType.name}/all">${ utils.str('admin_ViewAllLink') }</a>
+                  </li>
+                  <li>
+                    <a class="nav-link" href="#${contentType.name}/new">${ utils.str('admin_AddNewLink') }</a>
+                  </li>
+                </ul>
               </li>
-              <li>
-                <a class="nav-link" href="#${contentType.name}/new">הוסף ${contentType.label} חדש</a>
-              </li>
-              <hr/>
+              <li><hr/></li>
             `);
           });
         }
@@ -269,9 +273,10 @@ function translationInterface(parentElement) {
 
 /* update page with translated strings */
 function translatePage( items ) {
-  let appSettings = utils.getGlobalVariable('appSettings'); 
+ 
   let translations = utils.getGlobalVariable('translations');
-  let language = appSettings.Admin_Lanaguage ? appSettings.Admin_Lanaguage : 'en';
+  
+  let language = utils.getAdminLanguage();
   document.querySelectorAll('[data-stringid]').forEach(element => {
     let stringId = element.getAttribute('data-stringid');
     let translationItem = translations.find( t=>t.key == stringId );

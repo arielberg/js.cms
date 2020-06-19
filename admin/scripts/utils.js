@@ -115,6 +115,27 @@ export let showMessage = function() {
   });
 }
 
+/**
+ * Get Admin selected language (as defined in systemSettings json)
+ */
+export let getAdminLanguage = function( ) {
+  let appSettings = getGlobalVariable('appSettings'); 
+  return appSettings.Admin_Lanaguage ? appSettings.Admin_Lanaguage : 'en';
+}
+
+/**
+ * Get Admin selected language (as defined in systemSettings json)
+ */
+export let str = function( key ) {
+  let translations = getGlobalVariable('translations');
+  let language = getAdminLanguage();
+  let translationItem = translations.find(t=>t.key == key );
+  if ( !translationItem ) return '';
+  if( translationItem.t[language] ) return translationItem.t[language];
+  return Object.values(translationItem.t)[0];
+}
+
+
 export let errorHandler = function( error ) {
 
   console.error(error);
