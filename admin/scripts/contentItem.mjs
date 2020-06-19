@@ -462,7 +462,6 @@ export function contentItemForm ( contentType , editedItem , op ) {
               case 'id':                
                 editedItem.isNew = false;
                 editedItem.set(field.name, inputField.value , '');
-                location.hash = '#' + editedItem.type + '/'+ editedItem.id;
               break;
               default: 
                 editedItem.set(field.name, inputField.value , language);
@@ -472,6 +471,11 @@ export function contentItemForm ( contentType , editedItem , op ) {
             // revalidate field
             let errors = editedItem.validate();
             showErrors(errors , field.name );
+            
+            //Change hash to item URL
+            if ( !errors.id ) {
+              location.hash = '#' + editedItem.type + '/'+ editedItem.id;
+            }
           }
         });
               
