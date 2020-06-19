@@ -13,7 +13,7 @@
         <link rel="icon" href="assets/images/favicon.ico" sizes="16x16">
         <title>undefined - undefined</title>
     </head>
-<body class="frontPage">
+<body class="news">
     <header id="head">
         <div class="inner">
             <div id="logo">
@@ -66,120 +66,45 @@
         <section class='title'>
             <h1>undefined</h1>        
         </section>
-        <link rel="stylesheet" type="text/css" href="assets/css/index.css">
-<section class="movie1">
-    <video autoplay muted loop id="myVideo" class="video-bgr">
-        <source src="assets/images/videoplayback.mp4" type="video/mp4">
-        Your browser does not support HTML5 video.
-    </video> 
-    <img src="assets/images/logo.png"/> 
-    
-    <svg class="shape-bottom" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 283.5 19.6" preserveAspectRatio="none" data-negative="false">
-        <path class="shape-fill" style="opacity:0.33" d="M0 0L0 18.8 141.8 4.1 283.5 18.8 283.5 0z"></path>
-        <path class="shape-fill" style="opacity:0.33" d="M0 0L0 12.6 141.8 4 283.5 12.6 283.5 0z"></path>
-        <path class="shape-fill" style="opacity:0.33" d="M0 0L0 6.4 141.8 4 283.5 6.4 283.5 0z"></path>
-        <path class="shape-fill" d="M0 0L0 1.2 141.8 4 283.5 1.2 283.5 0z"></path>
-    </svg>
-</section>
+        <script>
 
-<section class="summary-section">
-    <div class="center-section">
-    <h1><b>undefined</b></h1>
-        <p>
-            undefined
-        </p>
-        <iframe class="video" allowfullscreen="" title="youtube Video Player" src="https://www.youtube.com/embed/ktX1NAcsKbU?feature=oembed&amp;autoplay=1&amp;start&amp;end&amp;wmode=opaque&amp;loop=0&amp;controls=0&amp;mute=0&amp;rel=0&amp;modestbranding=0"></iframe>
-    </div>
-    <div class="shape-bottom" data-negative="false">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none">
-            <path class="elementor-shape-fill" d="M421.9,6.5c22.6-2.5,51.5,0.4,75.5,5.3c23.6,4.9,70.9,23.5,100.5,35.7c75.8,32.2,133.7,44.5,192.6,49.7
-            c23.6,2.1,48.7,3.5,103.4-2.5c54.7-6,106.2-25.6,106.2-25.6V0H0v30.3c0,0,72,32.6,158.4,30.5c39.2-0.7,92.8-6.7,134-22.4
-            c21.2-8.1,52.2-18.2,79.7-24.2C399.3,7.9,411.6,7.5,421.9,6.5z"></path>
-        </svg>		
-    </div>    
-</section>
-
-<section class="motives">
-    <div class="inner">
-        <div class='col1'>
-            undefined
-        </div>
-        <div class="img-wrap col2">
-            <img src="assets/images/motives.jpg" alt=""/> 
-            <img src="assets/images/motives2.jpg" alt=""/> 
-        </div>
-    </div>
-            
-    </section>
-    
-    <section class="more-aboutus">
-    <div class="inner">
-        <h2>undefined</h2>
-        <div class="social-icons-wrapper">
-            <a href="https://www.facebook.com//" target="_blank">
-                <i class="fab fa-facebook"></i>
-            </a>
-            <a href="https://twitter.com/" target="_blank">
-                <i class="fab fa-twitter"></i>
-            </a>
-            <a href="https://www.youtube.com/channel/UCTYbGS4HxgYi2diMjfmmrFA" target="_blank">
-                <i class="fab fa-youtube"></i>
-            </a>
-        </div>
-        <p>
-            undefined  
-        </p>
-        <div class="separator"></div>
-    </div>
-
-    <div class="_shape-bottom" data-negative="true">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none">
-            <path class="elementor-shape-fill" d="M500,97C126.7,96.3,0.8,19.8,0,0v100l1000,0V1C1000,19.4,873.3,97.8,500,97z"></path>
-        </svg>		
-    </div>            
-</section>
-
-<section class="withyou">
-    undefined
- </section>
-
-
- <section class="articles-grid">
-    <h2 class="elementor-heading-title elementor-size-default">undefined  &gt;&gt;</h2>
-    <div id='lastPosts' class="grid">
-    </div>
-    <script>
-        let container = document.getElementById('lastPosts');
-        fetch('search/post.json')
+    fetch('search/news-item.json')
         .then(res=>res.json())
+        .then(res=>{
+            res.forEach(resultItem=>{
+                resultItem.date = new Date(resultItem.date);
+            });
+            return res;
+        })
+        .then(res=>{
+            return res.sort((a, b)=>{ return a.date >b.date });
+        })
         .then(jsonItems=>{
-            jsonItems
-                .reverse()
-                .slice( 0, 9 )
-                .forEach( jsonItem => {
-                    let article = document.createElement('article');
-                    article.style.backgroundImage = 'url('+(jsonItem.image?jsonItem.image:'assets/images/post_default.jpeg')+')';
-                    let link = document.createElement('a');
-                    link.href = jsonItem.href;
-                    link.innerText = jsonItem.title;;
-                    article.append(link);
-                    container.append(article);
+            let currentYear = '';
+           
+            jsonItems.forEach( jsonItem => {
+
+                let itemYear = jsonItem.date.getFullYear();          
+
+                let link = document.createElement('a');
+                link.href = jsonItem.link;
+                link.className = 'result-card';
+                link.innerHTML = '<img src="assets/images/'+ jsonItem.publisher + '.png" ><span>' + jsonItem.title +'</span>';
                 
+                
+                let yearDiv = document.getElementById('year_'+itemYear);
+                if ( !yearDiv ) {
+                    yearDiv = document.createElement('div');
+                    yearDiv.id = 'year_'+itemYear;
+                    yearDiv.innerHTML = '<h3>'+ itemYear + '</h3>';
+                    document.getElementById('main').appendChild(yearDiv);
+                }
+                yearDiv.appendChild(link);
+
             });                
-        });    
-    </script>
-</section>
+        }); 
 
-<section class="quote">  
-    <div class="inner">
-        <h3 class="size-large">“undefined” </h3>		
-        <div class="spacer"></div>
-        <div class="author">
-            undefined
-        </div>
-    </div>
-</section>   
-
+</script>
     </main>
 </body>
 </html>
