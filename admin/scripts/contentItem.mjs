@@ -119,6 +119,8 @@ export function contentItem ( contentType , ItemId ) {
     .then(files => {
       let itemToSave = JSON.parse(JSON.stringify(this));
       delete itemToSave.attachments;
+      delete itemToSave.isNew;
+      delete itemToSave.files;
       /*** index.json ***/
       return files.concat([{
         "content":  JSON.stringify(itemToSave),
@@ -307,11 +309,11 @@ export function contentItemForm ( contentType , editedItem , op ) {
         switch( op ) {
           case 'edit':
             // Default fields 
-            formFields.unshift({ name: "title", label: utils.str(''), type: "textfield"});
-            formFields.unshift({ name: "id", label: utils.str('admin_fieldIdLabel'), type: "id"});
+            formFields.unshift({ name: "title", label: utils.str('admin_fieldTitleLabel'), type: "textfield"});
+            formFields.unshift({ name: "id", label: ( editedItem.isNew ? utils.str('admin_fieldIdLabel'):utils.str('admin_fieldItemURL') ), type: "id"});
           break;
           case 'en':            
-            formFields.unshift({ name: "title", label: "כותרת", type: "textfield"});
+            formFields.unshift({ name: "title", label: utils.str('admin_fieldTitleLabel'), type: "textfield"});
             formFields = formFields
                           .filter( f=> ['image','file'].indexOf(f.type) == -1 )
                           .filter( f=> f.i18n !== false );
@@ -354,17 +356,18 @@ export function contentItemForm ( contentType , editedItem , op ) {
           fieldDiv.innerHTML = `<label>${ field.label }</label>`;
 
           switch(field.type){
-            case 'id': 
-              
-                inputField = document.createElement('input');
-                inputField.value = editedItem.id;
-                inputField.onkeyup = v => {
-                    urlPreview.innerText =  editedItem.getURL(true);
-                };
-                fieldDiv.appendChild(inputField);
+            case 'id':             
+              inputField = document.createElement('input');
+              inputField.value = editedItem.id;
+              inputField.onkeyup = v => {
+                  urlPreview.innerText =  editedItem.getURL(true);
+              };
+              fieldDiv.appendChild(inputField);
+             
               if ( !editedItem.isNew ) {
                 inputField.style.display = 'none';
               }
+
               let urlPreview = document.createElement('span');
               urlPreview.className = 'siteUrlPreview'
               urlPreview.innerText =  editedItem.getURL(true);
@@ -456,10 +459,9 @@ export function contentItemForm ( contentType , editedItem , op ) {
                 
                 reader.readAsDataURL(this.files[0]);
               break;
-              case 'id':
-                console.log(inputField);
+              case 'id':                
+                editedItem.isNew = false;
                 editedItem.set(field.name, inputField.value , '');
-                console.log(editedItem);
                 location.hash = '#' + editedItem.type + '/'+ editedItem.id;
               break;
               default: 
