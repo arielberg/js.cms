@@ -7,7 +7,7 @@
         "urlPrefix":"post/",
         "fields":[
             {"name":"image","label":"Image","type":"image", "i18n":false},
-            {"name":"body","label":"body","type":"wysiwyg", "placeholder":"גוף הפוסט"}
+            {"name":"body","label":"body","type":"wysiwyg", "placeholder":"Post Body"}
         ]
     },
     {  
@@ -18,7 +18,7 @@
         "labelDefinedPlural":"pages",
         "fields":[
             {"name":"image","label":"Image","type":"image", "i18n":false},
-            {"name":"body","label":"body","type":"wysiwyg", "placeholder":"גוף הפוסט"}           
+            {"name":"body","label":"body","type":"wysiwyg", "placeholder":"Page Body"}           
         ]
     }
 ]

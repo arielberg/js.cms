@@ -1,6 +1,5 @@
 import * as utils from './utils.js'; 
 import * as main from './script.mjs'; 
-import * as api from './GitHubAPI.mjs';
 
 
 /**

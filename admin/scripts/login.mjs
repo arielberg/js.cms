@@ -1,7 +1,5 @@
 import * as utils from './utils.js'; 
 import * as main from './script.mjs'; 
-import * as api from './GitHubAPI.mjs';
-
 
 /**
  * Handle login ( using GIT credentials )
@@ -13,23 +11,26 @@ export function doLogin( parentComponent ) {
    * When secret exists. Creates the GitAPI Object
    */
   let createAPIObject = function() {
-   
+  
     let appSettings = utils.getGlobalVariable('appSettings');
     let apiClassName = appSettings['API_Gate'];
 
-    // TODO: Support other APIs
+
     // invoke API class
-    api.getApi()
-        .then( api_gateway => {
-          utils.setGlobalVariable( 'gitApi', api );
-          document.getElementById('pageWrapper').classList.remove('hideLeftBar');
-          main.routeToCall();
-        })
-        .catch( errorMessage=> {
-          localStorage.removeItem('secret');
-          utils.loadLoginForm(errorMessage);
-        });
-  };
+    import('./api/'+apiClassName+'.mjs')
+      .then(api => {
+        return api.getApi()
+          .then( api_gateway => {
+            utils.setGlobalVariable( 'gitApi', api );
+            document.getElementById('pageWrapper').classList.remove('hideLeftBar');
+            main.routeToCall();
+          })
+          .catch( errorMessage=> {
+            localStorage.removeItem('secret');
+            utils.loadLoginForm(errorMessage);
+          });
+      })
+  }
 
   /**
    * Render the login form. should be called if secret not exists and re-render on 

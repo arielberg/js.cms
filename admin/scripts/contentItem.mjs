@@ -647,8 +647,7 @@ export function contentList( parentElement, contentType ) {
     })
     .catch(exception=>{
       console.log(exception);
-      utils.errorHandler(exception);
-      return exception;
+      return [];
     })
     .then(items=>{
       if(items.length==0) {throw 'empty';}

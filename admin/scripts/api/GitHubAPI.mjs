@@ -1,7 +1,7 @@
-import * as utils from './utils.js';
+import * as utils from '../utils.js';
 
 export let getRepo = function() {
-  let loginParams = utils.getLocalStorage( 'secret');
+  let loginParams = utils.getLocalStorage('secret');
   let appSettings = utils.getGlobalVariable('appSettings');
  
   let octo = new Octokat({ 'token': loginParams.token });
