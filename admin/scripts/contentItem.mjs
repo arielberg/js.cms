@@ -400,9 +400,10 @@ export function contentItemForm ( contentType , editedItem , op ) {
             break;
             case 'image':  
             case 'file':
-              if( field.type == 'image') {         
+              if( field.type == 'image') {  
+                // console.log(siteUrl);       
                 fieldDiv.innerHTML += `<div class='preview'>
-                  ${ editedItem[field.name]? `<img src="${ siteUrl + editedItem[field.name]}" />` : '' }
+                  ${ editedItem[field.name]? `<img src="${ '../' + editedItem[field.name] }" />` : '' }
                 </div>`;
               }
               else {
@@ -657,8 +658,8 @@ export function contentList( parentElement, contentType ) {
                     <table>
                       <tr>
                         <th>#</th>
-                        <th>לינקים</th>
-                        <th>כותרת</th>                     
+                        <th>Links</th>
+                        <th>Title</th>                     
                       </tr>
                       ${ items.reverse().map((item) => 
                         `<tr>

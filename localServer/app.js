@@ -22,8 +22,15 @@ const server = http.createServer((req, res) => {
         let files = JSON.parse(chunk);
         files.forEach( fileData => {
           let fileLocalPath = __dirname.replace('localServer','')+'/'+fileData.filePath;
-          fs.mkdir( require('path').dirname(fileLocalPath) , { recursive: true }, (err) => { });
-          fs.writeFile( fileLocalPath , fileData.content , (err,data) => {});
+
+          if(fileData.encoding == 'base64') {
+            var buf = Buffer.from(fileData.content, 'base64');
+            fs.writeFileSync(fileLocalPath, buf);
+          }
+          else {            
+            fs.mkdir( require('path').dirname(fileLocalPath) , { recursive: true }, (err) => { });
+            fs.writeFileSync( fileLocalPath , fileData.content , (err,data) => {});
+          }
         });     
       });
       req.on('end', () => {
