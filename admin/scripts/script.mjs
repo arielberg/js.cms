@@ -1,5 +1,6 @@
 import * as utils from './utils.js'; 
 import { commitFiles, contentItemForm, contentList , contentItemLoader} from './contentItem.mjs'; 
+import { menuBuilder } from './menu.mjs'; 
 import {doLogin} from './login.mjs'; 
 
 
@@ -94,6 +95,9 @@ export function routeToCall(){
         });        
       });
 
+    break;
+    case '#menu'==hash:
+      menuBuilder(document.getElementById('content'));
     break;
     case '#translate'==hash:
       translationInterface(document.getElementById('content'));

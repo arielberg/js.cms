@@ -1,0 +1,7 @@
+{ 
+    'en':[
+        { url:'', label:'front'},
+        { url:'posts', label:'Posts'},
+        { url:'about-us', label:'About Us'}
+    ]
+}
