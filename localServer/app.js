@@ -21,14 +21,15 @@ const server = http.createServer((req, res) => {
       req.on('data', chunk => {
         let files = JSON.parse(chunk);
         files.forEach( fileData => {
-          console.log( fileData.filePath );
-        });        
+          let fileLocalPath = __dirname.replace('localServer','')+'/'+fileData.filePath;
+          fs.mkdir( require('path').dirname(fileLocalPath) , { recursive: true }, (err) => { });
+          fs.writeFile( fileLocalPath , fileData.content , (err,data) => {});
+        });     
       });
       req.on('end', () => {
         res.end( 'done');
       })
     return;
-
   }
   res.statusCode = 500;
   res.end('cannot parse request');
