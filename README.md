@@ -10,3 +10,14 @@ This enables the following features:
 * Easy rollbacks and all the benefits GIT features.
 
 
+## Installation (GitHub Pages)
+* clode the repository
+* enable github pages on the new repo
+* create a Personal Access Token ( github settings > eveloper settings > Personal access tokens )
+* go to http://your-repository-url/admin login with your access token as password
+* Start creating and editing your content
+
+## Settings Files 
+* admin/appSettings.json - importent generic information (languages, hosting provider, url, etc.)
+* admin/contentTypes.json - The content types that will be used in your site and the fields for each content type (Pages, Posts, Members, Etc.) 
+* admin/
