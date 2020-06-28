@@ -1,6 +1,7 @@
 import * as utils from './utils.js'; 
 import { commitFiles, contentItemForm, contentList , contentItemLoader} from './contentItem.mjs'; 
 import { menuBuilder } from './menu.mjs'; 
+import { rerenderer, rederCustomPages } from './rerender.mjs'; 
 import {doLogin} from './login.mjs'; 
 
 
@@ -97,7 +98,11 @@ export function routeToCall(){
 
     break;
     case '#menu'==hash:
+    case '#menus'==hash:
       menuBuilder(document.getElementById('content'));
+    break;
+    case '#rerender'==hash:
+      rerenderer(document.getElementById('content'));
     break;
     case '#translate'==hash:
       translationInterface(document.getElementById('content'));
@@ -119,9 +124,7 @@ export function routeToCall(){
 
 /** Translation interface for 'static' string in pages */
 function translationInterface(parentElement) {
-  let translations = utils.getGlobalVariable('translations');
-  let appSettings = utils.getGlobalVariable('appSettings');
-  
+ 
   let fields = translations.filter(translationItem=>translationItem.ui==1)
                            .map( translationItem => `
                               <h3>${translationItem.description} (${translationItem.key})</h3>
@@ -134,114 +137,18 @@ function translationInterface(parentElement) {
   submit.innerText = 'Submit';
   submit.onclick = ()=>{
     translations.forEach(translationItem=>{
+      
       if ( translationItem.ui != 1 ) return;
+
+      // Load User Trnaslated String
       appSettings.Lanugages.forEach(langkey=> {
         translationItem.t[langkey] = document.getElementById(translationItem.key+'_'+langkey).value;
-      })
+      });
+
     });
 
-    let languages = appSettings.Lanugages;
-    
-    let wrapperPath = 'templates/base.html';
-    fetch( wrapperPath )
-      .then(res=>res.text())
-      .then( pageWrapper => {
-
-        return languages.map(languageCode=>{
-          let linksPrefix = languageCode + (languageCode==''?'':'/');
-          let templates = [
-            { 
-              template:'front.page.html',
-              target:'index.html',
-              title:'frontPageTitle',
-              class:'frontPage'
-            },
-            { 
-              template:'about.page.html',
-              target:'about/index.html',
-              title:'aboutUsPageTitle',
-              class:'AboutUs'
-            },
-            { 
-              template:'news.page.html',
-              target:'in-the-news/index.html',
-              title:'newsPageTitle',
-              class:'news'
-            },
-            { 
-              template:'papers.page.html',
-              target:'position-papers/index.html',
-              title:'papersPageTitle',
-              class:'papers'
-            },
-            { 
-              template:'articles.page.html',
-              target:'posts/index.html',
-              title:'articlesPageTitle',
-              class:'articles'
-            },
-            { 
-              template:'media.page.html',
-              target:'media/index.html',
-              title:'mediaPageTitle',
-              class:'media'
-            },
-            { 
-              template:'contact.page.html',
-              target:'contact-us/index.html',
-              title:'contactPageTitle',
-              class:'contact'
-            },
-            { 
-              template:'donations.page.html',
-              target:'donations/index.html',
-              title:'donationsPageTitle',
-              class:'donations'
-            }
-          ];
-
-          let strings = {};        
-          translations.forEach(item => strings[item.key] = item.t[languageCode] );
-         
-          let templateVars = {
-              'strings': strings,
-              'site_url': appSettings['Site_Url'],
-              'direction':'rtl',
-              'linksPrefix': linksPrefix
-          };
-
-          return Promise.all(
-            templates.map( templateData => {
-              return fetch('templates/' + templateData.template )
-                    .then( res => res.text() )
-                    .then( template => 
-                      {  
-                        templateVars.pageClass = templateData.class;
-                        templateVars.pageTitle = strings[templateData.title];
-                        templateVars.content = new Function("return `" + template + "`;").call(templateVars); 
-
-                        return ({
-                          "content":  new Function("return `" + pageWrapper + "`;").call(templateVars),
-                          "filePath": linksPrefix + templateData.target,
-                          "encoding": "utf-8" 
-                        })
-                      })
-            })
-          )        
-        })
-      })
-      .then( filesResponses => Promise.all(filesResponses))
-      .then( filesResponses =>{ 
-        return filesResponses.reduce((filesResponses, val) => filesResponses.concat(val), []);
-      })
-      .then( renderedFiles=> { renderedFiles.push( 
-        {
-          "content": JSON.stringify(translations),
-          "filePath": 'admin/translations.json',
-          "encoding": "utf-8" 
-        });
-        return renderedFiles;
-      })
+    // render pages
+    rederCustomPages()
       .then( renderedFiles =>{     
         return commitFiles('Rerender pages after translation change' , renderedFiles );
       }).then(res=> {

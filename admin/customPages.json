@@ -1,0 +1,4 @@
+[
+    { "template":"front.tpl", "parentTempalte":"base.html",  "url":"" , "language":"en" },
+    { "template":"search.tpl", "parentTempalte":"base.html", "url":"search" , "language":"en" }
+]
