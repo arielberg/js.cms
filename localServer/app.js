@@ -9,11 +9,15 @@ const server = http.createServer((req, res) => {
   parts.shift();
   res.setHeader("Access-Control-Allow-Origin", "*");
   switch(parts.shift()) {
-    case 'get':      
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'text/plain');
-      res.end(fs.readFileSync('../'+parts.join('/'),  {encoding:'utf8', flag:'r'}));
-    return;
+    case 'get':     
+      try { 
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/plain');
+        res.end( fs.readFileSync('../' + parts.join('/'),  {encoding:'utf8', flag:'r'}));
+        return;
+      }
+      catch(exp) {}
+    break;
     case 'save-files':
       res.statusCode = 200;
       res.setHeader('Content-Type', 'text/plain');
@@ -23,7 +27,7 @@ const server = http.createServer((req, res) => {
         files.forEach( fileData => {
           let fileLocalPath = __dirname.replace('localServer','')+'/'+fileData.filePath;
 
-          if(fileData.encoding == 'base64') {
+          if ( fileData.encoding == 'base64' ) {
             var buf = Buffer.from(fileData.content, 'base64');
             fs.writeFileSync(fileLocalPath, buf);
           }

@@ -65,7 +65,7 @@ export let loadSystemFile = function( variableName , filePath, onSuccess ) {
  */
 export let t = function( translationKey, language ) {
   let translations = getGlobalVariable('translations');
-  return translations.find(t=>t.key == translationKey ).t[ language==''?'he': language ]
+  return translations.find(t=>t.key == translationKey ).t[ language ]
 }
 
  /**

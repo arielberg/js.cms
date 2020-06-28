@@ -140,7 +140,7 @@ function translationInterface(parentElement) {
       })
     });
 
-    let languages = ['','en'];
+    let languages = appSettings.Lanugages;
     
     let wrapperPath = 'templates/base.html';
     fetch( wrapperPath )
@@ -201,7 +201,7 @@ function translationInterface(parentElement) {
           ];
 
           let strings = {};        
-          translations.forEach(item => strings[item.key] = item.t[languageCode==''?'he':languageCode] );
+          translations.forEach(item => strings[item.key] = item.t[languageCode] );
          
           let templateVars = {
               'strings': strings,

@@ -82,7 +82,7 @@ export function contentItem ( contentType , ItemId ) {
     let fieldContent = value;
     switch ( fieldData.type ) {
       case "image":
-        fieldContent = '<img src="'+value+'" />';
+        fieldContent = '<img src="/'+value+'" />';
       break;
       case "file":
         fieldContent = '<a href="'+value+'" >' + utils.t('viewFile', language) + '</a>';
@@ -114,30 +114,30 @@ export function contentItem ( contentType , ItemId ) {
    */
   this.getRepositoryFiles = () => {
     /*** index.html ***/
-    // TODO: Take laguages from settings...
-    return renderPage(this, ['', 'en'])
-    .then(files => {
-      let itemToSave = JSON.parse(JSON.stringify(this));
-      delete itemToSave.attachments;
-      delete itemToSave.isNew;
-      delete itemToSave.files;
-      /*** index.json ***/
-      return files.concat([{
-        "content":  JSON.stringify(itemToSave),
-        "filePath": this.getURL(false)+'/index.json',
-        "encoding": "utf-8" 
-      }]);
-    })
-    /*** Add Attachments ***/
-    .then( files => {
-      if ( this.attachments.length == 0 )  return files;
-      let attachments = Object.keys(this.attachments).map( fieldName => ({
-          "content":  this.attachments[fieldName],
-          "filePath": this[fieldName],
-          "encoding": "base64" 
-      }));
-      return files.concat(attachments);
-    })
+    let appSettings = utils.getGlobalVariable('appSettings');
+    return renderPage(this, appSettings.Lanugages)
+            .then(files => {
+              let itemToSave = JSON.parse(JSON.stringify(this));
+              delete itemToSave.attachments;
+              delete itemToSave.isNew;
+              delete itemToSave.files;
+              /*** index.json ***/
+              return files.concat([{
+                "content":  JSON.stringify(itemToSave),
+                "filePath": this.getURL(false)+'/index.json',
+                "encoding": "utf-8" 
+              }]);
+            })
+            /*** Add Attachments ***/
+            .then( files => {
+              if ( this.attachments.length == 0 )  return files;
+              let attachments = Object.keys(this.attachments).map( fieldName => ({
+                  "content":  this.attachments[fieldName],
+                  "filePath": this[fieldName],
+                  "encoding": "base64" 
+              }));
+              return files.concat(attachments);
+            })
   }
   
   /**
@@ -164,37 +164,53 @@ export function contentItem ( contentType , ItemId ) {
   let renderPage = async function( editItemObj, languages , isDeleted ) {
 
     let translations = utils.getGlobalVariable('translations');
-       
+    let appSettings = utils.getGlobalVariable('appSettings');
+    let APIconnect = utils.getGlobalVariable('gitApi');
+ 
     return fetch('templates/base.html')
             .then(result=> result.text())
             .then( baseTemplate => {
-              return Promise.all( languages.map( language => {
+              // TODO: Support multiple menus
+              return APIconnect.getFile('/admin/menus/main.json')
+                                .then( menu => { return JSON.parse(menu) })
+                                .then( jsonMenu => {
+                return Promise.all( languages.map( language => {
 
-                let strings = {};        
-                translations.forEach(item => strings[item.key] = item.t[language==''?'he':language] );
+                  let menuHtml = '';
+                  if( jsonMenu[language] ) {
+                    menuHtml = `<ul class='navbar-nav'>
+                      ${ jsonMenu[language].map(i=>`<li><a href="${ i.url }">${ i.label }</a></li>`).join('') }
+                    </ul>`;
+                  }
 
-                let templateVars = {
-                    'strings': strings,
-                    'site_url':siteUrl,
-                    'direction':'rtl',
-                    'linksPrefix':  language + (language==''?'':'/'),
-                    'pageTitle': language=='' ? editItemObj.title: editItemObj[language].title,
-                    'pageClass': 'itemPage '+ editItemObj.type
-                } ;
-                if ( !isDeleted ) {
-                  templateVars.content = editItemObj.render(language);
-                }
-                else {
-                  templateVars.pageTitle = 'Page not found';
-                  templateVars.content = '';
-                }
-                
-                return {
-                  "content":  new Function("return `" + baseTemplate + "`;").call(templateVars),
-                  "filePath": (language!=''?language+'/':'')+editItemObj.getURL(false)+'/index.html',
-                  "encoding": "utf-8" 
-                }
-              }));
+                  let strings = {};        
+                  translations.forEach(item => strings[item.key] = item.t[language] );
+                  let isDefaultLanguage = language == appSettings.Default_Language;
+
+                  let templateVars = {
+                      'strings': strings,
+                      'menu_main': menuHtml,
+                      'site_url':siteUrl?siteUrl:'/',
+                      'direction':'rtl',
+                      'linksPrefix':  isDefaultLanguage ? '' : (language+'/'),
+                      'pageTitle': isDefaultLanguage ? editItemObj.title: editItemObj[language].title,
+                      'pageClass': 'itemPage '+ editItemObj.type + ' ' + editItemObj.type + editItemObj.id
+                  } ;
+                  if ( !isDeleted ) {
+                    templateVars.content = editItemObj.render( isDefaultLanguage ? '' : language );
+                  }
+                  else {
+                    templateVars.pageTitle = 'Page not found';
+                    templateVars.content = '';
+                  }
+                  
+                  return {
+                    "content":  new Function("return `" + baseTemplate + "`;").call(templateVars),
+                    "filePath": ( language == appSettings.Default_Language?'':language+'/')+editItemObj.getURL(false)+'/index.html',
+                    "encoding": "utf-8" 
+                  }
+                }));
+              })
             }) 
   }
 }
@@ -403,7 +419,7 @@ export function contentItemForm ( contentType , editedItem , op ) {
               if( field.type == 'image') {  
                 // console.log(siteUrl);       
                 fieldDiv.innerHTML += `<div class='preview'>
-                  ${ editedItem[field.name]? `<img src="${ '../' + editedItem[field.name] }" />` : '' }
+                  ${ editedItem[field.name]? `<img src="${ '../' + editedItem[field.name]+'?t'+ ((new Date()).getTime()) }" />` : '' }
                 </div>`;
               }
               else {
@@ -658,18 +674,18 @@ export function contentList( parentElement, contentType ) {
                     <table>
                       <tr>
                         <th>#</th>
-                        <th>Links</th>
-                        <th>Title</th>                     
+                        <th>Title</th>
+                        <th>Links</th>                                             
                       </tr>
                       ${ items.reverse().map((item) => 
                         `<tr>
                           <td>${item.id}</td>
-                          <td>
-                            <a href=${'#' + contentType + '/'+item.id}>ערוך</a>
-                            <a style='margin-right:20px;' href=${'#' + contentType + '/'+item.id+'/delete'}>מחק</a>
-                          </td>
                           
                           <td>${item.title}</td>
+                          <td>                            
+                            <a href=${'#' + contentType + '/'+item.id}>Edit</a>                            
+                            <a style='margin-left:20px;' href=${'#' + contentType + '/'+item.id+'/delete'}>Delete</a>
+                          </td>
                           
                         </tr>` ).join("")}        
                     </table>

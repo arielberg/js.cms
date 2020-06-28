@@ -2,6 +2,7 @@
   --main-bg-color: #aad;
   --sidebar-color: #656;
   --sidebar-width: 250px;
+  --page-width: 1200px;
   --color-dark: #1d3557;
 }
 
@@ -11,8 +12,23 @@
 
 nav a {
   color:#000;
+  padding: 0 20px;
 }
 
+#mainMenu {
+  display: inline-block !important;
+}
+
+nav form.form-inline {
+  display: inline-block;
+  float: right;
+  padding-top: 11px;
+}
+
+.inner {
+  width: var(--page-width);
+  margin: 0 auto;
+}
 
 nav button, nav .btn-outline-success {
   border:1px solid #000;
@@ -28,5 +44,10 @@ nav .btn-outline-success:active {
 }
 
 #main {
-  padding-top: 100px;
+  margin-top: 100px;
+}
+
+#main .field-image img {
+  float: left;
+  margin-right: 30px;
 }
