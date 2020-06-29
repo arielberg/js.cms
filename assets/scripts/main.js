@@ -1,3 +1,5 @@
 console.log('aaaa');
 
-//document.getElementById('baseURL').href='http://google.com/';
+let baseElement = document.createElement('base');
+baseElement.href='http://google.com/';
+document.querySelector('head').appendChild(baseElement);
