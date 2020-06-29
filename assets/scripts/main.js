@@ -1,5 +1,7 @@
-console.log('aaaa');
+let matchGitHubPages = window.location.href.match(/(.*)github.io\/([^\/]*)/);
 
-let baseElement = document.createElement('base');
-baseElement.href='http://google.com/';
-document.querySelector('head').appendChild(baseElement);
+if ( matchGitHubPages ) {
+    let baseElement = document.createElement('base');
+    baseElement.href = matchGitHubPages[0];
+    document.querySelector('head').appendChild(baseElement);
+}
