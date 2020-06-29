@@ -25,15 +25,16 @@ const server = http.createServer((req, res) => {
       req.on('data', chunk => {
         let files = JSON.parse(chunk);
         files.forEach( fileData => {
+          
           let fileLocalPath = __dirname.replace('localServer','')+'/'+fileData.filePath;
 
           if ( fileData.encoding == 'base64' ) {
             var buf = Buffer.from(fileData.content, 'base64');
             fs.writeFileSync(fileLocalPath, buf);
           }
-          else {            
+          else {   
             fs.mkdir( require('path').dirname(fileLocalPath) , { recursive: true }, (err) => { });
-            fs.writeFileSync( fileLocalPath , fileData.content , (err,data) => {});
+            fs.writeFileSync( fileLocalPath, fileData.content, (err,data) => {});
           }
         });     
       });

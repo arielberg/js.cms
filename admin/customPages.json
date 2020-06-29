@@ -1,4 +1,6 @@
-[
-    { "template":"front.tpl", "parentTempalte":"base.html",  "url":"" , "language":"en" },
-    { "template":"search.tpl", "parentTempalte":"base.html", "url":"search" , "language":"en" }
-]
+{
+    "en": [
+        { "template":"front.tpl", "title": "Welcome to JS-CMS", "class": "frontPage", "parentTempalte":"base.html", "url":"index.html" },
+        { "template":"search.tpl", "title": "Search Results", "class": "searchPage",  "parentTempalte":"base.html", "url":"search/index.html" }
+    ]
+}

@@ -1,61 +1,38 @@
 <!DOCTYPE HTML>
 <html>
     <head>
-      <base id='baseURL' href='' />
-      <meta charset="utf-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <link rel="stylesheet" type="text/css" href="assets/css/style.css" />
-      <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" media="all" />        
-      <script src="assets/scripts/main.js" ></script>
-      <link rel="icon" href="assets/images/favicon.ico" sizes="16x16" />
-      <title>undefined - undefined</title>
-
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" type="text/css" href="/assets/css/style.css">
+        <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap.min.css" media="all">        
+        <link rel="icon" href="/assets/images/favicon.ico" sizes="16x16">
+        <title>Js-CMS - Welcome to JS-CMS</title>
     </head>
 <body class="frontPage">
+  <nav class="navbar navbar-expand-md fixed-top">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>  
+    <div class="inner">
+      <a class="navbar-brand" href="#"><img width="120px" src="/assets/images/logo.png" /></a>
+      <div class="collapse navbar-collapse" id="mainMenu">        
+        <ul class='navbar-nav'>
+                                <li><a href="/">Home</a></li><li><a href="/about-us">About Us</a></li><li><a href="/posts">Posts</a></li>
+                                </ul>
+      </div>
+      <form class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+      </form>
+    </div>
+  </nav>
 
+    <main id='main' role="main" class="container">
+      <div class="starter-template">
+        <h1>Welcome to JS-CMS</h1>          
+          This is front page
 
-
-    <nav class="navbar navbar-expand-md fixed-top">
-        <a class="navbar-brand" href="#"><img width="120px" src="assets/images/logo.png" /></a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-  
-        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-          <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link disabled" href="#">Disabled</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="dddd" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
-              <div class="dropdown-menu" aria-labelledby="dropdown01">
-                <a class="dropdown-item" href="ddd1">Action</a>
-                <a class="dropdown-item" href="ddd2">Another action</a>
-                <a class="dropdown-item" href="ddd3">Something else here</a>
-              </div>
-            </li>
-          </ul>
-          <form class="form-inline my-2 my-lg-0">
-            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-          </form>
-        </div>
-      </nav>
-  
-      <main role="main" class="container">
-  
-        <div class="starter-template">
-          <h1>undefined</h1>          
-            This is front page
-
-        </div>
-  
-      </main>
+      </div>
+    </main>
 </body>
 </html>

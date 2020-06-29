@@ -23,7 +23,6 @@ export function contentItem ( contentType , ItemId ) {
   this.en = {};
 
   let appSettings = utils.getGlobalVariable('appSettings');
-  let siteUrl = appSettings['Site_Url'];
   let typeData = utils.getGlobalVariable('contentTypes').find ( ty => ty.name==contentType );
  
   /* when item is new - prevent from changing it's id to existing one */
@@ -47,7 +46,7 @@ export function contentItem ( contentType , ItemId ) {
     }
 
     if( existsItemsIds.indexOf(this.id) > -1 ) {
-      errors.id = 'This Id allready exists';
+      errors.id = 'This Id already exists';
     }
 
     if( !this.title ) {
@@ -92,7 +91,7 @@ export function contentItem ( contentType , ItemId ) {
   }
 
   this.getURL = returnAbsolutePath => {
-      return ( returnAbsolutePath ? siteUrl: '' ) + typeData.urlPrefix + this.id;
+      return '/' + typeData.urlPrefix + this.id;
   }
 
   this.setFile = ( field, value ) => {
@@ -190,7 +189,6 @@ export function contentItem ( contentType , ItemId ) {
                   let templateVars = {
                       'strings': strings,
                       'menu_main': menuHtml,
-                      'site_url':siteUrl?siteUrl:'/',
                       'direction':'rtl',
                       'linksPrefix':  isDefaultLanguage ? '' : (language+'/'),
                       'pageTitle': isDefaultLanguage ? editItemObj.title: editItemObj[language].title,
@@ -275,9 +273,6 @@ export async function contentItemLoader ( contentType , ItemId ) {
 export function contentItemForm ( contentType , editedItem , op ) {
   let wrapper = document.createElement('div');
   
-  let appSettings = utils.getGlobalVariable('appSettings');
-  let siteUrl = appSettings['Site_Url'];
-
   let typeData = utils.getGlobalVariable('contentTypes').find ( ty => ty.name==contentType );
   // Set Fields By OP type
   let formFields =  JSON.parse(JSON.stringify(typeData.fields));

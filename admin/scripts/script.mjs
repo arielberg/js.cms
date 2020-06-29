@@ -149,6 +149,14 @@ function translationInterface(parentElement) {
 
     // render pages
     rederCustomPages()
+      .then( renderedFiles=> { renderedFiles.push( 
+        {
+          "content": JSON.stringify(translations),
+          "filePath": 'admin/translations.json',
+          "encoding": "utf-8" 
+        });
+        return renderedFiles;
+      })
       .then( renderedFiles =>{     
         return commitFiles('Rerender pages after translation change' , renderedFiles );
       }).then(res=> {
@@ -204,7 +212,7 @@ function translatePage( items ) {
 function rebuildHTML(parentElement) {
   let typeData = utils.getGlobalVariable('contentTypes');
   let appSettings = utils.getGlobalVariable('appSettings');
-  let siteUrl = appSettings['Site_Url'];
+  
   let parent = document.createElement('div');
   /* */
   fetch('../search/post.json')
