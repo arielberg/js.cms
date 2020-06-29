@@ -107,9 +107,6 @@ export function routeToCall(){
     case '#translate'==hash:
       translationInterface(document.getElementById('content'));
     break;
-    case '#admin/rebuildHTML'==hash:
-      rebuildHTML(document.getElementById('content'));
-    break;
     case '#logout'==hash:
       localStorage.removeItem('token');
       localStorage.removeItem('secret');
@@ -204,39 +201,6 @@ function translatePage( items ) {
     }
   })
   routeToCall();
-}
-
-/**
- * Rebuild items HTML pages from items Json.
- */
-function rebuildHTML(parentElement) {
-  let typeData = utils.getGlobalVariable('contentTypes');
-  let appSettings = utils.getGlobalVariable('appSettings');
-  
-  let parent = document.createElement('div');
-  /* */
-  fetch('../search/post.json')
-    .then(response=>{
-      return response.json();
-    })
-    .then( searchItems=>{
-      return Promise.all(
-        searchItems
-          .map( searchItem => { 
-            return contentItemLoader('post', searchItem.id)
-                    .then( fetchedItem => fetchedItem.getRepositoryFiles() )
-          })
-      )       
-    })
-    .then( files =>{
-      files = [].concat.apply([], files);
-      commitFiles('Rebuild Posts', files)
-    }).then(res=> {
-      parentElement.innerHTML = 'Done!';
-    });
-  
- 
-  parentElement.innerHTML = 'Rebuilding.... Please Wait';
 }
 
 window.onload = function(e) { 

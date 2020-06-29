@@ -18,6 +18,11 @@ const server = http.createServer((req, res) => {
       }
       catch(exp) {}
     break;
+    case 'isAlive':
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'text/plain');
+      res.end( 'success!' );
+    return;
     case 'save-files':
       res.statusCode = 200;
       res.setHeader('Content-Type', 'text/plain');
@@ -25,7 +30,7 @@ const server = http.createServer((req, res) => {
       req.on('data', chunk => {
         let files = JSON.parse(chunk);
         files.forEach( fileData => {
-          
+
           let fileLocalPath = __dirname.replace('localServer','')+'/'+fileData.filePath;
 
           if ( fileData.encoding == 'base64' ) {

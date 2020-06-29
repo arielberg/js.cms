@@ -78,6 +78,9 @@ export function contentItem ( contentType , ItemId ) {
   }
 
   this.renderField = ( fieldData, value , language ) => {
+    
+    if( value == '' || !value ) return '';
+
     let fieldContent = value;
     switch ( fieldData.type ) {
       case "image":

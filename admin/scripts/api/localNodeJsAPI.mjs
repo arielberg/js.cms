@@ -15,7 +15,7 @@ let localServer = 'http://127.0.0.1:3000'
  */
 export let getApi = function() {
     return new Promise(resolve => {
-        resolve('Success!');
+      return fetch( localServer+'/isAlive' ).then( r=>  resolve('Success!') );
     });
 }
 

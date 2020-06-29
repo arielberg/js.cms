@@ -36,7 +36,7 @@ export function rerenderer( parentComponent ) {
                             return Promise.all(
                                 searchItems
                                 .map( searchItem => { 
-                                    return contentItemLoader('post', searchItem.id)
+                                    return contentItemLoader( t.name , searchItem.id)
                                         .then( fetchedItem => { 
                                             return fetchedItem.getRepositoryFiles() 
                                         })
@@ -45,19 +45,31 @@ export function rerenderer( parentComponent ) {
                         })
                 })
         )
+
+        // Flat the response promises to a list of objects
         .then( files =>{
-            // flatten promises
             files = Array.prototype.concat.apply([], files );
             return Array.prototype.concat.apply([], files );
         })
+
+        // Add custom pages files
         .then( files => {
-            return rederCustomPages().then( customPages => {
-                return  files.concat( customPages );
-            })            
+            if( document.getElementById('static').checked ) {
+                return rederCustomPages().then( customPages => {
+                    return  files.concat( customPages );
+                })            
+            }
+            else {
+                return files;
+            }
         })
+
+        // Commit Files
         .then( files =>{
             return commitFiles('Rebuild Posts', files)
         })
+
+        // Done - Reset UI
         .then(res=> {
             utils.successMessage('Content Has been Updated successfully', res);
             submitButton.disabled = false;
@@ -67,7 +79,7 @@ export function rerenderer( parentComponent ) {
 }
 
 /**
- * Static pages are
+ * Static pages
  */
 export function rederCustomPages() {
 
