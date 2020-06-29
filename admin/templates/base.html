@@ -9,7 +9,7 @@
         <link rel="icon" href="/assets/images/favicon.ico" sizes="16x16">
         <title>${ this.strings.siteName } - ${ this.pageTitle }</title>
         <script>
-          let matchGitHubPages = window.location.href.match(/(.*)github.io\/([^\/]*)/);
+          let matchGitHubPages = window.location.href.match(/(.*)github.io\/[^/]*/);
 
           if ( matchGitHubPages ) {
               let baseElement = document.createElement('base');
