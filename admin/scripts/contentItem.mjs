@@ -94,7 +94,7 @@ export function contentItem ( contentType , ItemId ) {
   }
 
   this.getURL = returnAbsolutePath => {
-      return '/' + typeData.urlPrefix + this.id;
+      return typeData.urlPrefix + this.id;
   }
 
   this.setFile = ( field, value ) => {
