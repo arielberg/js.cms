@@ -18,7 +18,7 @@
                 let link = document.createElement('a');
                 link.href = jsonItem.href;
                 link.className = 'readMore';
-                link.innerText = 'קרא עוד';
+                link.innerText = 'Read More';
                 itemContent.append(link);
                 itemDiv.append(itemContent);
                 document.getElementById('main').appendChild(itemDiv);
