@@ -3,9 +3,11 @@
     <head>
         <script>
           let matchGitHubPages = window.location.href.match(/(.*)github.io\/([^/]*)/);
+          let basePath = '/'
           if ( matchGitHubPages ) {
-            document.write("<base href='"+matchGitHubPages[2]+"'></base>");
+            basePath = matchGitHubPages[2];
           }
+          document.write("<base href='"+matchGitHubPages[2]+"'></base>");
         </script>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />

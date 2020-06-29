@@ -2,9 +2,9 @@
 <html>
     <head>
         <script>
-          let matchGitHubPages = window.location.href.match(/(.*)github.io\\/[^/]*/);
+          let matchGitHubPages = window.location.href.match(/(.*)github.io\\/([^/]*)/);
           if ( matchGitHubPages ) {
-            document.write("<base href='"+matchGitHubPages[0]+"'></base>");
+            document.write("<base href='"+matchGitHubPages[2]+"'></base>");
           }
         </script>
         <meta charset="utf-8" />
