@@ -42,15 +42,14 @@
         document.querySelectorAll('[href]').forEach(s=>{
           if( s.href ) { 
             s.href = s.href.replace(( location.origin + location.pathname), matchGitHubPages[0]+'/');
-            console.log( '---', ( location.origin + location.pathname), matchGitHubPages[0], atchGitHubPages[0]+'/' ); 
             console.log(s.href); 
           }
+        });
+
         document.querySelectorAll('[src]').forEach( s => {
           if( s.src ) { 
             s.src = s.src.replace(location.src, matchGitHubPages[0])+'/';
           }
-        });
-
         });
       }
       /*
