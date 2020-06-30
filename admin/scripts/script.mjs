@@ -124,7 +124,7 @@ function translationInterface(parentElement) {
  
   let fields = translations.filter(translationItem=>translationItem.ui==1)
                            .map( translationItem => `
-                              <h3>${translationItem.description} (${translationItem.key})</h3>
+                              <h3>${ ( translationItem.description ? translationItem.description + ' - ' : '' ) + translationItem.key }</h3>
                               ${ appSettings.Lanugages.map(langkey=> `<div class='langItem ${langkey}'>
                                 <label>${ appSettings.LanugageLabels[langkey] }</label>
                                 <textarea id='${ translationItem.key + '_' + langkey }'>${ translationItem.t[langkey] }</textarea>
