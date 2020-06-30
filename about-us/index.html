@@ -7,9 +7,9 @@
         <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" media="all">        
         <script type="text/javascript" src="assets/scripts/main.js"></script>       
         <link rel="icon" href="assets/images/favicon.ico" sizes="16x16">
-        <title>Js-CMS - Welcome to JS-CMS</title>
+        <title>Js-CMS - About Us</title>
     </head>
-<body class="frontPage">
+<body class="itemPage page pageabout-us">
   <nav class="navbar navbar-expand-md fixed-top">
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -30,14 +30,13 @@
 
     <main id='main' role="main" class="container">
       <div class="starter-template">
-        <h1>Welcome to JS-CMS</h1>          
-          This is front page
-
+        <h1>About Us</h1>          
+          <div class='field field-wysiwyg f-body'><p>&nbsp;</p></div>
       </div>
     </main>
     <script>
       // fix for github pages:
-      let matchGitHubPages = window.location.href.match(/(.*)github.io\/([^/]*)/);
+      let matchGitHubPages = window.location.href.match(/(.*)github.io/([^/]*)/);
       if ( matchGitHubPages ) {
         document.querySelectorAll('[href]').forEach(s=>{
           if( s.href ) { 
@@ -52,9 +51,6 @@
           }
         });
       }
-      /*
-      
-      */
     </script>
 </body>
 </html>
