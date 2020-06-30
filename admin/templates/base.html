@@ -34,7 +34,7 @@
     </main>
     <script>
       // fix for github pages:
-      let matchGitHubPages = window.location.href.match(/(.*)github.io\/([^/]*)/);
+      let matchGitHubPages = window.location.href.match(/(.*)github.io\\/([^/]*)/);
       if ( matchGitHubPages ) {
         document.querySelectorAll('[href]').forEach(s=>{
           if( s.href ) { 
