@@ -11,9 +11,10 @@ This enables the following features:
 
 
 ## Installation (GitHub Pages)
-* clode the repository
-* enable github pages on the new repo
+* fork this repository
+* enable github pages on the forked repo
 * create a Personal Access Token ( github settings > eveloper settings > Personal access tokens )
+* update admin/appSettings.json with your username and forked branch name
 * go to http://your-repository-url/admin login with your access token as password
 * Start creating and editing your content
 
