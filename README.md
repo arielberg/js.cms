@@ -1,4 +1,4 @@
-# JS-CMS
+U# JS-CMS
 Js-Cms is a CMS that enables dynamic editing of pages that will be hosted on CDN or static pages provider (GithubPages etc.)
 
 The content of the site can be edited dynamically as a normal CMS but then, instead of adding the new data to the DB - static HTML & JSON pages are created and uploaded to the CDN (using the CDN's API).
