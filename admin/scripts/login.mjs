@@ -40,11 +40,11 @@ export function doLogin( parentComponent ) {
   let loadLoginForm = function( errorMessage ) {
     // create login form
     parentComponent.innerHTML = `<form className='loginForm'>
-                                  <h3>התנועה למשילות - כניסה לממשק ניהול</h3>
+                                  <h3>Login</h3>
                                   ${ errorMessage ? `<div class="alert alert-danger" role="alert">${errorMessage}</div>` : '' }
-                                  <div><label>שם:</label><input name='name' type='text' placeholder='שם משתמש' /></div>
-                                  <div><label>סיסמא:</label><input name='password' type='text' placeholder='סיסמא' /></div>
-                                  <input type='submit' value='היכנס' />
+                                  <div><label>Name:</label><input name='name' type='text' placeholder='username' /></div>
+                                  <div><label>Password:</label><input name='password' type='text' placeholder='password' /></div>
+                                  <input type='submit' value='Login' />
                                 </form>`;
                               
     // form callback

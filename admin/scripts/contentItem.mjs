@@ -282,9 +282,9 @@ export function contentItemForm ( contentType , editedItem , op ) {
 
   // Build node tabs
   let baseURL = '#' + contentType + '/' + editedItem.id + '/';
-  let links = [{ 'op':'edit', 'label':'עריכה' }];
+  let links = [{ 'op':'edit', 'label':'Edit' }];
   if ( true ) { // TODO: check i18n support
-    links.push({ 'op':'en', 'label':'תרגום' });
+    links.push({ 'op':'en', 'label':'Translate' });
   }
   links.push({ 'op':'seo', 'label':'SEO' });
   
@@ -292,10 +292,10 @@ export function contentItemForm ( contentType , editedItem , op ) {
     case 'delete':
       wrapper.innerHTML = `
         <div>
-          <h3>האם אתה בטוח שברצונך למחוק פריט זה?</h3>
+          <h3>Are you sure you want to delete this item?</h3>
           <div>
-            <button id='approveDelete'>כן</button>
-            <button className='cancel' onclick="location.href='#${ contentType }/all'">לא</button>
+            <button id='approveDelete'>Yes</button>
+            <button className='cancel' onclick="location.href='#${ contentType }/all'">No</button>
           </div>
         </div>`;
         wrapper.querySelector('#approveDelete').onclick = (event) => {
@@ -339,7 +339,7 @@ export function contentItemForm ( contentType , editedItem , op ) {
           break;
         }
 
-        wrapper.innerHTML = `<h1>עריכת ${typeData.label}</h1>
+        wrapper.innerHTML = `<h1>Edit ${typeData.label}</h1>
         <ul id="tabs" class="nav nav-tabs">
           ${ links.map(field=>
             `<li class="nav-item">
@@ -498,17 +498,17 @@ export function contentItemForm ( contentType , editedItem , op ) {
        
         let submitButtons = document.createElement('div');
         let cancelButton = document.createElement('button');
-        cancelButton.innerText = 'בטל';
+        cancelButton.innerText = 'Cancel';
         cancelButton.className = 'cancel';
         cancelButton.onclick = ( ()=> {
-          if( confirm('האם אתה בטוח?') ) {
+          if( confirm('Are you sure?') ) {
             localStorage.removeItem(editedItem.type+'/' + editedItem.id);
             utils.gotoList(editedItem.type);
           }
         });
         let submitButton = document.createElement('button');
         submitButton.className = 'submit';
-        submitButton.innerText = 'שמור';
+        submitButton.innerText = 'save';
 
         /**
          * Submit item
@@ -693,7 +693,7 @@ export function contentList( parentElement, contentType ) {
     .catch( exeption=>{
       parentElement.innerHTML = `<div>
       <h1>${pageTitle}</h1>
-      לא קיימים פריטים מסוג זה.
+      No Items
       </div>`;
     });
 }
