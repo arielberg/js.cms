@@ -41,9 +41,8 @@
       if ( matchGitHubPages ) {
         document.querySelectorAll('[href]').forEach(s=>{
           if( s.href ) { 
-            console.log(s.href); 
-            s.href = s.href.replace(location.href, matchGitHubPages[0])+'/';
-            console.log(location.origin + location.pathname, matchGitHubPages[0]); 
+            s.href = s.href.replace(( location.origin + location.pathname), matchGitHubPages[0])+'/';
+            console.log( '---', matchGitHubPages[0]); 
             console.log(s.href); 
           }
         document.querySelectorAll('[src]').forEach( s => {
