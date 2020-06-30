@@ -48,7 +48,7 @@
 
         document.querySelectorAll('[src]').forEach( s => {
           if( s.src ) { 
-            s.src = s.src.replace( location.src, matchGitHubPages[0] + '/' );
+            s.src = s.src.replace( ( location.origin + location.pathname), matchGitHubPages[0] + '/' );
           }
         });
       }
