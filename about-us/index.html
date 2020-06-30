@@ -39,9 +39,10 @@
       // fix for github pages:
       let matchGitHubPages = window.location.href.match(/(.*)github.io\/([^/]*)/);
       if ( matchGitHubPages ) {
-      document.querySelectorAll('[href]').forEach(s=>{
-        if( s.href ) { console.log(s.href); s.href = s.href.replace(location.href, matchGitHubPages[0]) }
-      });
+        document.querySelectorAll('[href]').forEach(s=>{
+          if( s.href ) { console.log(s.href); s.href = s.href.replace(location.href, matchGitHubPages[0]) }
+        });
+      }
       /*
       document.querySelectorAll('[src]').forEach( s => {
         if( s.src ) { console.log(s.src);  s.src = s.src.replace(location.src, matchGitHubPages[0]) }
