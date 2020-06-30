@@ -3,9 +3,16 @@
     <head>
         <script>
           let matchGitHubPages = window.location.href.match(/(.*)github.io\/([^/]*)/);
+<<<<<<< HEAD
           if ( matchGitHubPages ) {
             document.write("<base href='"+matchGitHubPages[2]+"'></base>");
+=======
+          let basePath = '/'
+          if ( matchGitHubPages ) {
+            basePath = matchGitHubPages[2];
+>>>>>>> plat with about page
           }
+          document.write("<base href='"+matchGitHubPages[2]+"'></base>");
         </script>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,9 +20,9 @@
         <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" media="all">        
         <script type="text/javascript" src="assets/scripts/main.js"></script>       
         <link rel="icon" href="assets/images/favicon.ico" sizes="16x16">
-        <title>Js-CMS - About Us</title>
+        <title>Js-CMS - Welcome to JS-CMS</title>
     </head>
-<body class="itemPage page pageabout-us">
+<body class="frontPage">
   <nav class="navbar navbar-expand-md fixed-top">
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -36,8 +43,9 @@
 
     <main id='main' role="main" class="container">
       <div class="starter-template">
-        <h1>About Us</h1>          
-          <div class='field field-wysiwyg f-body'><p>&nbsp;</p></div>
+        <h1>Welcome to JS-CMS</h1>          
+          This is front page
+
       </div>
     </main>
 </body>
