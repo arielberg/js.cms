@@ -89,7 +89,8 @@ export function routeToCall(){
           var suneditor = SUNEDITOR.create( wysiwyg.id , {
             buttonList: [
                 ['undo', 'redo'],
-                ['align', 'horizontalRule', 'list', 'table', 'fontSize']
+                ['align', 'horizontalRule', 'list', 'table', 'fontSize'],
+                ["link", "image", "video", "audio"]
             ],
           });
           suneditor.onChange =  wysiwyg.onchange;
@@ -171,7 +172,10 @@ function translationInterface(parentElement) {
                     var suneditor = SUNEDITOR.create( translationItem.key+'_'+languageCode , {
                       buttonList: [
                           ['undo', 'redo'],
-                          ['bold','align', 'formatBlock', 'horizontalRule', 'list', 'table' ]
+                          ['bold','link' ,'align', 'textStyle', 'formatBlock', 'horizontalRule', 'list', 'table' ]
+                      ],
+                      textStyles: [
+                        {name: 'button1', style: 'background: #6ec1e4;padding: 25px 30px;border: none; color: #fff;font-size: 1.3em;border-radius: 10px;  cursor: pointer;', tag: 'a'}
                       ],
                       formats: [
                         "p",

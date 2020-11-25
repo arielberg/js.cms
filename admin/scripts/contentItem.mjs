@@ -94,7 +94,8 @@ export function contentItem ( contentType , ItemId ) {
   }
 
   this.getURL = returnAbsolutePath => {
-      return (returnAbsolutePath ? '/' : '') + typeData.urlPrefix + this.id;
+      let url = (returnAbsolutePath ? '/' : '') + typeData.urlPrefix + this.id;
+      return decodeURIComponent(url);
   }
 
   this.setFile = ( field, value ) => {
@@ -178,25 +179,23 @@ export function contentItem ( contentType , ItemId ) {
                                 .then( jsonMenu => {
                 return Promise.all( languages.map( language => {
 
-                  let menuHtml = '';
-                  if( jsonMenu[language] ) {
-                    menuHtml = `<ul class='navbar-nav'>
-                      ${ jsonMenu[language].map(i=>`<li><a href="${ i.url }">${ i.label }</a></li>`).join('') }
-                    </ul>`;
-                  }
+                  let menuHtml  = renderMenu( jsonMenu[language] );
 
                   let strings = {};        
                   translations.forEach(item => strings[item.key] = item.t[language] );
                   let isDefaultLanguage = language == appSettings.Default_Language;
-
+                  let pageDescription = editItemObj.seo.description ? editItemObj.seo.description : strings.SEODefaultDescription;
+                  
                   let templateVars = {
                       'strings': strings,
                       'menu_main': menuHtml,
                       'direction':'rtl',
                       'linksPrefix':  isDefaultLanguage ? '' : (language+'/'),
                       'pageTitle': isDefaultLanguage ? editItemObj.title: editItemObj[language].title,
+                      'pageDescription':pageDescription,
                       'pageClass': 'itemPage '+ editItemObj.type + ' ' + editItemObj.type + editItemObj.id
                   } ;
+
                   if ( !isDeleted ) {
                     templateVars.content = editItemObj.render( isDefaultLanguage ? '' : language );
                   }
@@ -263,6 +262,33 @@ export async function contentItemLoader ( contentType , ItemId ) {
   }
 }
 
+/**
+   * Render HTML menu from JSON
+   */
+  export function renderMenu( jsonMenu ) {
+    let menuHtml = '';
+    if( jsonMenu ) {
+      menuHtml = `<ul class='navbar-nav'>`;
+      jsonMenu.forEach( menuItem => {
+          if ( menuItem.subItems ) { 
+            menuHtml += `<li class='nav-item dropdown'>
+              <a>${ menuItem.label }</a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                  ${ menuItem.subItems
+                      .map( menuSubItem=>`<a class="dropdown-item"  href="/${ menuSubItem.url }">${ menuSubItem.label }</a>`)
+                      .join('') }
+              </div>
+            </li>\n`;
+          }
+          else { 
+            menuHtml += `<li><a href="/${ menuItem.url }">${ menuItem.label }</a></li>\n`;
+          }
+      });
+      
+      menuHtml += `</ul>`;
+    }
+    return menuHtml;
+  }
 
 /**
  * 
@@ -414,15 +440,15 @@ export function contentItemForm ( contentType , editedItem , op ) {
             break;
             case 'image':  
             case 'file':
-              if( field.type == 'image') {  
-                // console.log(siteUrl);       
+              let filePath = decodeURIComponent(editedItem[field.name]);       
+              if( field.type == 'image') {                  
                 fieldDiv.innerHTML += `<div class='preview'>
-                  ${ editedItem[field.name]? `<img src="${ '../' + editedItem[field.name]+'?t'+ ((new Date()).getTime()) }" />` : '' }
+                  ${ filePath ? `<img src="${ '../' + filePath +'?t'+ ((new Date()).getTime()) }" />` : '' }
                 </div>`;
               }
               else {
                 fieldDiv.innerHTML += `<div class='preview'>
-                  ${ editedItem[field.name] }
+                  ${ filePath }
                 </div>`;
               }
             
@@ -627,9 +653,7 @@ export function contentItemForm ( contentType , editedItem , op ) {
    * Get Search string - map item words in order to support static search
    */
   let getCleanText = function(value) {
-      return value.replace(/(<([^>]+)>)/ig," ")
-                  .replace(/\r?\n|\r/g,' ')
-                  .replace(/[^a-zA-Z0-9א-ת ]/g,"")
+      return value;
   }
 
   return wrapper;
@@ -677,7 +701,7 @@ export function contentList( parentElement, contentType ) {
                       </tr>
                       ${ items.reverse().map((item) => 
                         `<tr>
-                          <td>${item.id}</td>
+                          <td>${ decodeURIComponent(item.id) }</td>
                           
                           <td>${item.title}</td>
                           <td>                            

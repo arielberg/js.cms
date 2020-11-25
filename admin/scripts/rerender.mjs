@@ -1,5 +1,5 @@
 import * as utils from './utils.js'; 
-import { commitFiles, contentItemForm, contentList , contentItemLoader} from './contentItem.mjs'; 
+import { commitFiles, contentItemForm, contentList , contentItemLoader, renderMenu} from './contentItem.mjs'; 
 
 
 /**
@@ -105,12 +105,7 @@ export function rederCustomPages() {
                         return languages.map(languageCode=>{
                             let linksPrefix = languageCode == appSettings.Default_Language ? '': (languageCode+'/');
 
-                            let menuHtml = '';
-                            if( jsonMenu[languageCode] ) {
-                                menuHtml = `<ul class='navbar-nav'>
-                                ${ jsonMenu[languageCode].map(i=>`<li><a href="${ i.url }">${ i.label }</a></li>`).join('') }
-                                </ul>`;
-                            }
+                            let menuHtml = renderMenu(jsonMenu[languageCode]);
                             
                             let templates = jsonCustomPageList[languageCode];
 
