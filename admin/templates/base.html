@@ -32,22 +32,29 @@
           ${ this.content }
       </div>
     </main>
-    <script>
-      // fix for github pages:
-      let matchGitHubPages = window.location.href.match(/(.*)github.io\\/([^/]*)/);
-      if ( matchGitHubPages ) {
-        document.querySelectorAll('[href]').forEach(s=>{
-          if( s.href ) { 
-            s.href = s.href.replace( ( location.origin + location.pathname), matchGitHubPages[0]+'/');
-            console.log(s.href); 
+    <script type="text/javascript">
+      
+      /// fix for github pages:
+      let devPatterns = [/(.*)github.io\\/([^/]*)/ ];
+      devPatterns.forEach(function(devPattern){
+          let matchGitHubPages = window.location.href.match(devPattern);
+          if ( matchGitHubPages ) {
+              document.querySelectorAll('[href]').forEach(s=>{
+                  if( s.href ) { 
+                      s.href = s.href.replace( ( location.origin + location.pathname), matchGitHubPages[0]+'/');
+                  }
+              });
+      
+              document.querySelectorAll('[src]').forEach( s => {
+                  if( s.src ) { 
+                      s.src = s.src.replace( ( location.origin + location.pathname), matchGitHubPages[0] + '/' );
+                  }
+              });
           }
-        });
+      });
 
-        document.querySelectorAll('[src]').forEach( s => {
-          if( s.src ) { 
-            s.src = s.src.replace( ( location.origin + location.pathname), matchGitHubPages[0] + '/' );
-          }
-        });
+      document.getElementById('mobileMenuToggle').onclick = btn => {
+          document.getElementById('mainMenu').classList.toggle("open");
       }
     </script>
 </body>
