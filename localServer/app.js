@@ -27,25 +27,39 @@ const server = http.createServer((req, res) => {
       res.statusCode = 200;
       res.setHeader('Content-Type', 'text/plain');
 
+      var bodyparts = [];
+      var bodylength = 0;
+
       req.on('data', chunk => {
-        let files = JSON.parse(chunk);
+        bodyparts.push(chunk);
+        bodylength += chunk.length;
+      });
+
+      req.on('end', function(){
+        var body = new Buffer(bodylength);
+        var bodyPos=0;
+        for (var i=0; i < bodyparts.length; i++) {
+            bodyparts[i].copy(body, bodyPos, 0, bodyparts[i].length);
+            bodyPos += bodyparts[i].length;
+        }
+        
+        let files = JSON.parse(body);
+        
         files.forEach( fileData => {
 
           let fileLocalPath = __dirname.replace('localServer','')+'/'+fileData.filePath;
-
+          
           if ( fileData.encoding == 'base64' ) {
             var buf = Buffer.from(fileData.content, 'base64');
             fs.writeFileSync(fileLocalPath, buf);
           }
-          else {   
-            fs.mkdir( require('path').dirname(fileLocalPath) , { recursive: true }, (err) => { });
+          else {              
+            fs.mkdir( require('path').dirname(fileLocalPath).replace('//','/') , { recursive: true }, (err) => { });
             fs.writeFileSync( fileLocalPath, fileData.content, (err,data) => {});
           }
-        });     
+        });  
+        res.end( 'done');   
       });
-      req.on('end', () => {
-        res.end( 'done');
-      })
     return;
   }
   res.statusCode = 500;
