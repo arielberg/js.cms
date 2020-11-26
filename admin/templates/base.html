@@ -32,8 +32,9 @@
           ${ this.content }
       </div>
     </main>
+   
     <script type="text/javascript">
-      
+
       /// fix for github pages:
       let devPatterns = [/(.*)github.io\\/([^/]*)/ ];
       devPatterns.forEach(function(devPattern){
@@ -41,13 +42,13 @@
           if ( matchGitHubPages ) {
               document.querySelectorAll('[href]').forEach(s=>{
                   if( s.href ) { 
-                      s.href = s.href.replace( ( location.origin + location.pathname), matchGitHubPages[0]+'/');
+                      s.href = s.href.replace( location.origin , matchGitHubPages[0] );
                   }
               });
       
               document.querySelectorAll('[src]').forEach( s => {
                   if( s.src ) { 
-                      s.src = s.src.replace( ( location.origin + location.pathname), matchGitHubPages[0] + '/' );
+                      s.src = s.src.replace( location.origin , matchGitHubPages[0] );
                   }
               });
           }
@@ -56,6 +57,7 @@
       document.getElementById('mobileMenuToggle').onclick = btn => {
           document.getElementById('mainMenu').classList.toggle("open");
       }
-    </script>
+    
+  </script>
 </body>
 </html>
