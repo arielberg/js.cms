@@ -1,16 +1,1 @@
-[
-    {
-        "name": "post",
-        "label": "Post",
-        "labelPlural": "Posts",
-        "urlPrefix": "post/",
-        "fields": [
-            {
-                "name": "title",
-                "label": "Title",
-                "type": "textfield",
-                "i18n": true
-            }
-        ]
-    }
-]
+[]
