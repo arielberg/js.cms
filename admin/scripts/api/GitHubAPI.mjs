@@ -45,7 +45,9 @@ let createBlob = function( path, content, encoding ) {
  * @param path - file path
  */
 export let getFile = async function( path ) {
-  return getRepo().contents(path).read();
+  // Remove leading slash to avoid double slashes in API URL
+  const normalizedPath = path.replace(/^\/+/, '');
+  return getRepo().contents(normalizedPath).read();
 }
 
 /**

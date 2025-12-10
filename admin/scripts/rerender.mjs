@@ -28,7 +28,7 @@ export function rerenderer( parentComponent ) {
             typeData
                 .filter( t =>  document.getElementById(t.name).checked )
                 .map( t=> { 
-                    return APIconnect.getFile('/search/' + t.name + '.json')
+                    return APIconnect.getFile('search/' + t.name + '.json')
                         .then(response=>{
                             return JSON.parse(response);
                         })
@@ -95,8 +95,41 @@ export function rederCustomPages() {
             .then( res => res.text() )
             .then( pageWrapper => {
                 return Promise.all([
-                        APIconnect.getFile('/cms-core/admin/menus/main.json').then( menu => { return JSON.parse(menu) }),
-                        APIconnect.getFile('/cms-core/config/customPages.json').then( customPages => { return JSON.parse(customPages) })
+                        // Try local fetch first for menus
+                        fetch('/cms-core/admin/menus/main.json')
+                            .then(response => {
+                              if (response.ok) {
+                                return response.json();
+                              }
+                              // Fall back to GitHub API (remove leading slash)
+                              return APIconnect.getFile('cms-core/admin/menus/main.json')
+                                .then( menu => JSON.parse(menu) );
+                            })
+                            .catch(() => {
+                              return APIconnect.getFile('cms-core/admin/menus/main.json')
+                                .then( menu => JSON.parse(menu) );
+                            }),
+                        // Try local fetch first for customPages
+                        fetch('/config/customPages.json')
+                            .then(response => {
+                              if (response.ok) {
+                                return response.json();
+                              }
+                              // Try cms-core defaults
+                              return fetch('/cms-core/config/customPages.json')
+                                .then(response => {
+                                  if (response.ok) {
+                                    return response.json();
+                                  }
+                                  // Fall back to GitHub API
+                                  return APIconnect.getFile('config/customPages.json')
+                                    .then( customPages => JSON.parse(customPages) );
+                                });
+                            })
+                            .catch(() => {
+                              return APIconnect.getFile('config/customPages.json')
+                                .then( customPages => JSON.parse(customPages) );
+                            })
                     ])
                     .then( promises => {
                         let jsonMenu = promises[0];

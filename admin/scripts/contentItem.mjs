@@ -186,8 +186,21 @@ export function contentItem ( contentType , ItemId ) {
             .then(result=> result.text())
             .then( baseTemplate => {
               // TODO: Support multiple menus
-              return APIconnect.getFile('/cms-core/admin/menus/main.json')
-                                .then( menu => { return JSON.parse(menu) })
+              // Try local fetch first, then GitHub API
+              return fetch('/cms-core/admin/menus/main.json')
+                                .then(response => {
+                                  if (response.ok) {
+                                    return response.json();
+                                  }
+                                  // Fall back to GitHub API (remove leading slash)
+                                  return APIconnect.getFile('cms-core/admin/menus/main.json')
+                                    .then( menu => JSON.parse(menu) );
+                                })
+                                .catch(() => {
+                                  // Final fallback to GitHub API
+                                  return APIconnect.getFile('cms-core/admin/menus/main.json')
+                                    .then( menu => JSON.parse(menu) );
+                                })
                                 .then( jsonMenu => {
                 return Promise.all( languages.map( language => {
 
@@ -732,7 +745,7 @@ export function contentList( parentElement, contentType ) {
   }
   let pageTitle  =  typeData.labelPlural;
   
-  APIconnect.getFile('/search/'+contentType+'.json')
+  APIconnect.getFile('search/'+contentType+'.json')
     .then(response=>{
       return JSON.parse(response);
     })
