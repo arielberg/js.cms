@@ -46,7 +46,12 @@ let createBlob = function( path, content, encoding ) {
  */
 export let getFile = async function( path ) {
   // Remove leading slash to avoid double slashes in API URL
-  const normalizedPath = path.replace(/^\/+/, '');
+  // Octokat's contents() method may add a slash, so we ensure no leading slash
+  let normalizedPath = path;
+  if (typeof path === 'string') {
+    normalizedPath = path.replace(/^\/+/, '');
+  }
+  console.log('getFile called with path:', path, 'normalized to:', normalizedPath);
   return getRepo().contents(normalizedPath).read();
 }
 

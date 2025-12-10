@@ -2,11 +2,11 @@ import * as utils from './utils.js';
 
 export let getRepo = function() {
   let loginParams = utils.getLocalStorage( 'secret');
-  // Init API Object
-  let apiRefferance = this;
+  let appSettings = utils.getGlobalVariable('appSettings');
+ 
   let octo = new Octokat({ 'token': loginParams.token });
-  // TODO: Read from app settings
-  let repo = octo.repos('arielberg', 'meshilut');
+  // Read from app settings
+  let repo = octo.repos(appSettings.API_Params[0], appSettings.API_Params[1]);
   return repo;
 }
 
@@ -45,7 +45,14 @@ let createBlob = function( path, content, encoding ) {
  * @param path - file path
  */
 export let getFile = async function( path ) {
-  return getRepo().contents(path).read();
+  // Remove leading slash to avoid double slashes in API URL
+  // Octokat's contents() method may add a slash, so we ensure no leading slash
+  let normalizedPath = path;
+  if (typeof path === 'string') {
+    normalizedPath = path.replace(/^\/+/, '');
+  }
+  console.log('getFile called with path:', path, 'normalized to:', normalizedPath);
+  return getRepo().contents(normalizedPath).read();
 }
 
 /**
