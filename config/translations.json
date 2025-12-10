@@ -1,0 +1,65 @@
+[
+    {
+        "key": "siteName",
+        "t": {"en": "CMS Site"},
+        "ui": 1,
+        "description": "Site name displayed in admin panel"
+    },
+    {
+        "key": "menus",
+        "t": {"en": "Menus"},
+        "ui": 1
+    },
+    {
+        "key": "translate",
+        "t": {"en": "Translation Interface"},
+        "ui": 1
+    },
+    {
+        "key": "rerender",
+        "t": {"en": "Rebuild"},
+        "ui": 1
+    },
+    {
+        "key": "contentTypes",
+        "t": {"en": "Content Types"},
+        "ui": 1,
+        "description": "Manage content types"
+    },
+    {
+        "key": "logout",
+        "t": {"en": "Logout"},
+        "ui": 1
+    },
+    {
+        "key": "admin_ViewAllLink",
+        "t": {"en": "View All"},
+        "ui": 0
+    },
+    {
+        "key": "admin_AddNewLink",
+        "t": {"en": "Add New"},
+        "ui": 0
+    },
+    {
+        "key": "admin_fieldTitleLabel",
+        "t": {"en": "Title"},
+        "ui": 0
+    },
+    {
+        "key": "admin_fieldIdLabel",
+        "t": {"en": "ID / URL"},
+        "ui": 0
+    },
+    {
+        "key": "admin_fieldItemURL",
+        "t": {"en": "URL"},
+        "ui": 0
+    },
+    {
+        "key": "SEODefaultDescription",
+        "t": {"en": "Default site description"},
+        "ui": 0
+    }
+]
+

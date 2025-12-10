@@ -3,9 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Site Managment</title>
+    <title>CMS Builder - Admin Panel</title>
     
     <link rel="stylesheet" href="style.css" ></link>
+    <link rel="stylesheet" href="contentTypeManager.css" ></link>
 
     <script src="scripts/script.mjs" type="module"></script>
 
@@ -16,7 +17,7 @@
     <script src="scripts/suneditor/suneditor.min.js" type="module"></script>
     
 </head> 
-<body dir="ltr" class="">
+<body class="">
   <div id='spinner'></div>
   <div id="pageWrapper" class="wrapper hideLeftBar">
    <!-- Sidebar -->
@@ -26,6 +27,12 @@
     </div>
 
     <ul id='sidebarLinks' class="list-unstyled components">
+      <li>
+        <a data-stringId='contentTypes' class="nav-link" href="#content-types">Content Types</a>
+      </li>
+      <li>
+        <hr/>
+      </li>
       <li>
         <a data-stringId='menus' class="nav-link" href="#menus">Menus</a>
       </li>
@@ -48,7 +55,12 @@
     <div id='messages'>
     </div>
     <div id="content">
-      Loading Data.... Please wait
+      <div id="loadingMessage">
+        <p>Loading Data.... Please wait</p>
+        <p class="text-muted" style="font-size: 0.9em; margin-top: 10px;">
+          If this is your first time, you'll be redirected to the setup wizard.
+        </p>
+      </div>
     </div>
   </div>
 </div>

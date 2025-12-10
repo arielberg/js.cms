@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CMS Builder - Initial Setup</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .setup-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .step-indicator .step-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .step-indicator .step-item::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: #e9ecef;
+            z-index: 0;
+        }
+        .step-indicator .step-item:last-child::after {
+            display: none;
+        }
+        .step-indicator .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #6c757d;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+        .step-indicator .step-item.active .step-number {
+            background: #667eea;
+            color: white;
+        }
+        .step-indicator .step-item.completed .step-number {
+            background: #28a745;
+            color: white;
+        }
+        .step-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 10px 30px;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8f 100%);
+        }
+        .alert {
+            border-radius: 5px;
+        }
+        .token-help {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .token-help a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .token-help a:hover {
+            text-decoration: underline;
+        }
+        .test-result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .test-result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .test-result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .footer-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <h1 class="text-center mb-4">CMS Builder Setup</h1>
+        <p class="text-center text-muted mb-4">Let's get your CMS configured in a few simple steps</p>
+        
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step-item active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="mt-2"><small>Repository</small></div>
+            </div>
+            <div class="step-item" data-step="2">
+                <div class="step-number">2</div>
+                <div class="mt-2"><small>Token</small></div>
+            </div>
+            <div class="step-item" data-step="3">
+                <div class="step-number">3</div>
+                <div class="mt-2"><small>Test</small></div>
+            </div>
+            <div class="step-item" data-step="4">
+                <div class="step-number">4</div>
+                <div class="mt-2"><small>Complete</small></div>
+            </div>
+        </div>
+
+        <!-- Step 1: Repository Configuration -->
+        <div class="step active" id="step1">
+            <div class="step-title">Step 1: Repository Configuration</div>
+            <p class="text-muted">Enter your GitHub repository details</p>
+            
+            <form id="repoForm">
+                <div class="form-group">
+                    <label for="gitAccount">GitHub Username</label>
+                    <input type="text" class="form-control" id="gitAccount" placeholder="your-username" required>
+                    <small class="form-text text-muted">Your GitHub username or organization name</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gitRepository">Repository Name</label>
+                    <input type="text" class="form-control" id="gitRepository" placeholder="your-repo-name" required>
+                    <small class="form-text text-muted">The name of your repository (without .git)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="defaultLanguage">Default Language</label>
+                    <select class="form-control" id="defaultLanguage">
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="he">Hebrew</option>
+                        <option value="ar">Arabic</option>
+                    </select>
+                </div>
+                
+                <div class="text-right">
+                    <button type="submit" class="btn btn-primary">Next: Get Token</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Step 2: Token Setup -->
+        <div class="step" id="step2">
+            <div class="step-title">Step 2: GitHub Personal Access Token</div>
+            <p class="text-muted">You'll need a GitHub Personal Access Token to use the CMS</p>
+            
+            <div class="token-help">
+                <strong>How to get a token:</strong>
+                <ol class="mb-0 mt-2">
+                    <li>Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Tokens</a></li>
+                    <li>Click "Generate new token" → "Generate new token (classic)"</li>
+                    <li>Name it (e.g., "CMS Builder")</li>
+                    <li>Select <strong>repo</strong> scope (Full control of private repositories)</li>
+                    <li>Click "Generate token" and copy it</li>
+                </ol>
+            </div>
+            
+            <form id="tokenForm">
+                <div class="form-group">
+                    <label for="githubToken">Personal Access Token</label>
+                    <input type="password" class="form-control" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" required>
+                    <small class="form-text text-muted">Paste your GitHub Personal Access Token here</small>
+                </div>
+                
+                <div class="footer-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+                    <button type="submit" class="btn btn-primary">Next: Test Connection</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Step 3: Test Connection -->
+        <div class="step" id="step3">
+            <div class="step-title">Step 3: Test Connection</div>
+            <p class="text-muted">Let's verify your token works with your repository</p>
+            
+            <div id="testResult"></div>
+            
+            <div class="footer-buttons">
+                <button type="button" class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+                <button type="button" class="btn btn-primary" id="testBtn" onclick="testConnection()">
+                    Test Connection
+                    <span class="loading" id="testLoading" style="display: none;"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Complete -->
+        <div class="step" id="step4">
+            <div class="step-title">✅ Setup Complete!</div>
+            <p class="text-muted">Your CMS is now configured and ready to use</p>
+            
+            <div class="alert alert-success">
+                <h5>Configuration saved successfully!</h5>
+                <p class="mb-0">You can now access the admin panel to start creating content.</p>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="../admin/index.html" class="btn btn-primary btn-lg" id="adminLink" onclick="window.markSetupComplete(event)">Go to Admin Panel</a>
+            </div>
+            <script>
+                // Mark setup as complete when clicking admin link
+                window.markSetupComplete = function(event) {
+                    sessionStorage.setItem('setupJustCompleted', 'true');
+                    // Let the link navigate normally
+                };
+                
+                // Use return path if available
+                document.addEventListener('DOMContentLoaded', () => {
+                    const returnPath = sessionStorage.getItem('returnAfterSetup');
+                    if (returnPath) {
+                        const link = document.getElementById('adminLink');
+                        if (link) {
+                            link.href = returnPath;
+                            link.onclick = window.markSetupComplete;
+                        }
+                        sessionStorage.removeItem('returnAfterSetup');
+                    }
+                });
+            </script>
+        </div>
+    </div>
+
+    <script src="setup.mjs" type="module"></script>
+</body>
+</html>
+

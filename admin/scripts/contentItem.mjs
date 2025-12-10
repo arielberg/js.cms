@@ -23,7 +23,14 @@ export function contentItem ( contentType , ItemId ) {
   this.en = {};
 
   let appSettings = utils.getGlobalVariable('appSettings');
-  let typeData = utils.getGlobalVariable('contentTypes').find ( ty => ty.name==contentType );
+  const contentTypes = utils.getGlobalVariable('contentTypes') || [];
+  let typeData = contentTypes.find ( ty => ty.name==contentType );
+  
+  if (!typeData) {
+    // Store contentType for later error handling
+    this._missingType = true;
+    typeData = { urlPrefix: contentType + '/', fields: [] }; // Fallback
+  }
  
   /* when item is new - prevent from changing it's id to existing one */
   let existsItemsIds = [];
@@ -94,7 +101,12 @@ export function contentItem ( contentType , ItemId ) {
   }
 
   this.getURL = returnAbsolutePath => {
-      let url = (returnAbsolutePath ? '/' : '') + typeData.urlPrefix + this.id;
+      const contentTypes = utils.getGlobalVariable('contentTypes') || [];
+      const currentTypeData = contentTypes.find(ty => ty.name === this.type) || typeData;
+      if (!currentTypeData) {
+        throw new Error(`Content type "${this.type}" not found`);
+      }
+      let url = (returnAbsolutePath ? '/' : '') + currentTypeData.urlPrefix + this.id;
       return decodeURIComponent(url);
   }
 
@@ -174,7 +186,7 @@ export function contentItem ( contentType , ItemId ) {
             .then(result=> result.text())
             .then( baseTemplate => {
               // TODO: Support multiple menus
-              return APIconnect.getFile('/admin/menus/main.json')
+              return APIconnect.getFile('/cms-core/admin/menus/main.json')
                                 .then( menu => { return JSON.parse(menu) })
                                 .then( jsonMenu => {
                 return Promise.all( languages.map( language => {
@@ -183,7 +195,7 @@ export function contentItem ( contentType , ItemId ) {
 
                   let strings = {};        
                   translations.forEach(item => strings[item.key] = item.t[language] );
-                  let isDefaultLanguage = language == appSettings.Default_Language;
+                  let isDefaultLanguage = (language == '') || (language == appSettings.Default_Language);
                   let pageDescription = editItemObj.seo.description ? editItemObj.seo.description : strings.SEODefaultDescription;
                   
                   let templateVars = {
@@ -206,7 +218,7 @@ export function contentItem ( contentType , ItemId ) {
                   
                   return {
                     "content":  new Function("return `" + baseTemplate + "`;").call(templateVars),
-                    "filePath": ( language == appSettings.Default_Language?'':language+'/')+editItemObj.getURL(false)+'/index.html',
+                    "filePath": ( isDefaultLanguage ? '': language+'/' )+editItemObj.getURL(false)+'/index.html',
                     "encoding": "utf-8" 
                   }
                 }));
@@ -226,16 +238,23 @@ export async function contentItemLoader ( contentType , ItemId ) {
   let contentObject =  new contentItem( contentType , ItemId );
 
   // Get content type data description and load defaults
-  let typeData = utils.getGlobalVariable('contentTypes').find ( ty => ty.name==contentType );
+  const contentTypes = utils.getGlobalVariable('contentTypes') || [];
+  let typeData = contentTypes.find ( ty => ty.name==contentType );
   
-  typeData.fields.forEach(field => {
-    if ( field.defaultValue ) {
-      contentObject[field.name] = field.defaultValue ;
-    }
-    else {
-      contentObject[field.name] = '';
-    }
-  });
+  if (!typeData) {
+    throw new Error(`Content type "${contentType}" not found. Please create it in Content Types first.`);
+  }
+  
+  if (typeData.fields && Array.isArray(typeData.fields)) {
+    typeData.fields.forEach(field => {
+      if ( field.defaultValue ) {
+        contentObject[field.name] = field.defaultValue ;
+      }
+      else {
+        contentObject[field.name] = '';
+      }
+    });
+  }
   
   if( localStorage[ contentObject.type + '/' + contentObject.id ] ) { // item is in editing process
     let cachedData = JSON.parse(localStorage[ contentObject.type + '/' + contentObject.id ]);
@@ -302,9 +321,23 @@ export async function contentItemLoader ( contentType , ItemId ) {
 export function contentItemForm ( contentType , editedItem , op ) {
   let wrapper = document.createElement('div');
   
-  let typeData = utils.getGlobalVariable('contentTypes').find ( ty => ty.name==contentType );
+  const contentTypes = utils.getGlobalVariable('contentTypes') || [];
+  let typeData = contentTypes.find ( ty => ty.name==contentType );
+  
+  if (!typeData) {
+    wrapper.innerHTML = `
+      <div class="alert alert-danger">
+        <h3>Content Type Not Found</h3>
+        <p>The content type "<strong>${contentType}</strong>" does not exist.</p>
+        <p>Please create it first in <a href="#content-types">Content Types</a>.</p>
+        <a href="#content-types" class="btn btn-primary">Go to Content Types</a>
+      </div>
+    `;
+    return wrapper;
+  }
+  
   // Set Fields By OP type
-  let formFields =  JSON.parse(JSON.stringify(typeData.fields));
+  let formFields =  JSON.parse(JSON.stringify(typeData.fields || []));
 
   // Build node tabs
   let baseURL = '#' + contentType + '/' + editedItem.id + '/';
@@ -317,11 +350,13 @@ export function contentItemForm ( contentType , editedItem , op ) {
   switch ( op ) {
     case 'delete':
       wrapper.innerHTML = `
-        <div>
-          <h3>Are you sure you want to delete this item?</h3>
-          <div>
-            <button id='approveDelete'>Yes</button>
-            <button className='cancel' onclick="location.href='#${ contentType }/all'">No</button>
+        <div class="alert alert-warning" style="max-width: 600px;">
+          <h3 style="margin-top: 0;">⚠️ Delete Content Item</h3>
+          <p>Are you sure you want to delete <strong>${editedItem.title || editedItem.id}</strong>?</p>
+          <p class="text-muted">This action cannot be undone.</p>
+          <div style="margin-top: 20px;">
+            <button id='approveDelete' class="btn btn-danger">Yes, Delete</button>
+            <button class="btn btn-secondary" onclick="location.href='#${ contentType }/all'" style="margin-left: 10px;">Cancel</button>
           </div>
         </div>`;
         wrapper.querySelector('#approveDelete').onclick = (event) => {
@@ -365,13 +400,17 @@ export function contentItemForm ( contentType , editedItem , op ) {
           break;
         }
 
-        wrapper.innerHTML = `<h1>Edit ${typeData.label}</h1>
-        <ul id="tabs" class="nav nav-tabs">
-          ${ links.map(field=>
-            `<li class="nav-item">
-              <a class="nav-link ${ field.op==op ? 'active' : '' }" href='${baseURL+field.op}'>${field.label}</a>
-            </li>`).join('') }
-        </ul>`;
+        wrapper.innerHTML = `
+          <div style="margin-bottom: 25px;">
+            <h1>Edit ${typeData.label}</h1>
+            <p class="text-muted">Manage content item: <code>${editedItem.id}</code></p>
+          </div>
+          <ul id="tabs" class="nav nav-tabs">
+            ${ links.map(field=>
+              `<li class="nav-item">
+                <a class="nav-link ${ field.op==op ? 'active' : '' }" href='${baseURL+field.op}'>${field.label}</a>
+              </li>`).join('') }
+          </ul>`;
         
         // validate before change tabs
         wrapper.querySelectorAll('#tabs li>a').forEach( tabLink => {
@@ -677,7 +716,20 @@ export function commitFiles( commitMessage , files ) {
  */
 export function contentList( parentElement, contentType ) {
   let APIconnect = utils.getGlobalVariable('gitApi');
-  let typeData = utils.getGlobalVariable('contentTypes').find(ty=>ty.name==contentType);
+  const contentTypes = utils.getGlobalVariable('contentTypes') || [];
+  let typeData = contentTypes.find(ty=>ty.name==contentType);
+  
+  if (!typeData) {
+    parentElement.innerHTML = `
+      <div class="alert alert-warning">
+        <h3>Content Type Not Found</h3>
+        <p>The content type "<strong>${contentType}</strong>" does not exist.</p>
+        <p>Please create it first in <a href="#content-types">Content Types</a>.</p>
+        <a href="#content-types" class="btn btn-primary">Go to Content Types</a>
+      </div>
+    `;
+    return;
+  }
   let pageTitle  =  typeData.labelPlural;
   
   APIconnect.getFile('/search/'+contentType+'.json')
@@ -692,32 +744,49 @@ export function contentList( parentElement, contentType ) {
       if(items.length==0) {throw 'empty';}
       parentElement.innerHTML = `
                   <div>
-                    <h1>${pageTitle}</h1>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                      <h1>${pageTitle}</h1>
+                      <a href="#${contentType}/new" class="btn btn-primary">
+                        + Add New
+                      </a>
+                    </div>
                     <table>
-                      <tr>
-                        <th>#</th>
-                        <th>Title</th>
-                        <th>Links</th>                                             
-                      </tr>
-                      ${ items.reverse().map((item) => 
-                        `<tr>
-                          <td>${ decodeURIComponent(item.id) }</td>
-                          
-                          <td>${item.title}</td>
-                          <td>                            
-                            <a href=${'#' + contentType + '/'+item.id}>Edit</a>                            
-                            <a style='margin-left:20px;' href=${'#' + contentType + '/'+item.id+'/delete'}>Delete</a>
-                          </td>
-                          
-                        </tr>` ).join("")}        
+                      <thead>
+                        <tr>
+                          <th style="width: 200px;">ID</th>
+                          <th>Title</th>
+                          <th style="width: 150px; text-align: center;">Actions</th>                                             
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${ items.reverse().map((item) => 
+                          `<tr>
+                            <td><code>${ decodeURIComponent(item.id) }</code></td>
+                            <td><strong>${item.title || '(No title)'}</strong></td>
+                            <td style="text-align: center;">                            
+                              <a href="#${contentType}/${item.id}" class="btn btn-sm btn-primary">Edit</a>
+                              <a href="#${contentType}/${item.id}/delete" class="btn btn-sm btn-danger" style="margin-left: 8px;">Delete</a>
+                            </td>
+                          </tr>` ).join("")}
+                      </tbody>
                     </table>
                   </div>`;
       
     })
     .catch( exeption=>{
-      parentElement.innerHTML = `<div>
-      <h1>${pageTitle}</h1>
-      No Items
-      </div>`;
+      parentElement.innerHTML = `
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h1>${pageTitle}</h1>
+            <a href="#${contentType}/new" class="btn btn-primary">
+              + Add New
+            </a>
+          </div>
+          <div class="alert alert-info" style="text-align: center; padding: 40px;">
+            <h3 style="margin: 0 0 10px 0;">No items yet</h3>
+            <p style="margin: 0 0 20px 0;">Get started by creating your first ${typeData.label.toLowerCase()}.</p>
+            <a href="#${contentType}/new" class="btn btn-primary">Create First Item</a>
+          </div>
+        </div>`;
     });
 }

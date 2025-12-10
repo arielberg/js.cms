@@ -95,8 +95,8 @@ export function rederCustomPages() {
             .then( res => res.text() )
             .then( pageWrapper => {
                 return Promise.all([
-                        APIconnect.getFile('/admin/menus/main.json').then( menu => { return JSON.parse(menu) }),
-                        APIconnect.getFile('/admin/customPages.json').then( customPages => { return JSON.parse(customPages) })
+                        APIconnect.getFile('/cms-core/admin/menus/main.json').then( menu => { return JSON.parse(menu) }),
+                        APIconnect.getFile('/cms-core/config/customPages.json').then( customPages => { return JSON.parse(customPages) })
                     ])
                     .then( promises => {
                         let jsonMenu = promises[0];

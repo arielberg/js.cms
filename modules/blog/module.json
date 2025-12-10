@@ -1,0 +1,12 @@
+{
+  "name": "blog",
+  "version": "1.0.0",
+  "description": "Blog posts module with categories and tags",
+  "author": "CMS Builder",
+  "dependencies": [],
+  "provides": {
+    "templates": ["post-list.html", "post-detail.html"],
+    "hooks": ["beforeRender", "afterSave"]
+  }
+}
+

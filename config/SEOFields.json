@@ -1,0 +1,5 @@
+[
+    { "name": "description", "label": "SEO Description", "placeholder": "Description for search engines", "type": "textfield" },
+    { "name": "keywords", "label": "SEO Keywords", "placeholder": "Comma-separated keywords", "type": "textfield" }
+]
+

@@ -3,6 +3,11 @@ import { commitFiles, contentItemForm, contentList , contentItemLoader} from './
 import { menuBuilder } from './menu.mjs'; 
 import { rerenderer, rederCustomPages } from './rerender.mjs'; 
 import {doLogin} from './login.mjs'; 
+import { loadModules, mergeContentTypes } from '../../core/moduleLoader.mjs';
+import { registerHooks, executeHook } from '../../core/hooks/hookSystem.mjs';
+import { contentTypeManager } from './contentTypeManager.mjs';
+import { ensureConfigured } from './configChecker.mjs';
+import { initNavigation, updateActiveNav } from './navigation.mjs';
 
 
 /**
@@ -17,56 +22,107 @@ export function routeToCall(){
   let hash = window.location.hash;
  
   switch(true) {
+    /** Configuration check - redirect to setup if not configured **/
+    case !loadSteps.configChecked:
+      ensureConfigured().then(isConfigured => {
+        if (!isConfigured) {
+          // Redirect will happen, don't continue
+          return;
+        }
+        loadSteps.configChecked = true;
+        routeToCall();
+      });
+      return; // Exit early, will continue after redirect check
+    break;
     /** Page loader - init variables **/
     case !utils.getGlobalVariable('appSettings'):
-      utils.loadSystemFile( 'appSettings', './appSettings.json' , routeToCall );
+      utils.loadSystemFile( 'appSettings', '../config/appSettings.json' , routeToCall );
     break;
     /** Page loader - init variables **/
     case !utils.getGlobalVariable('translations'):
-      utils.loadSystemFile( 'translations', './translations.json' , translatePage );
+      utils.loadSystemFile( 'translations', '../config/translations.json' , translatePage );
     break;
     case !utils.getGlobalVariable('gitApi'):
       doLogin(document.getElementById('content'));
     break;
     case !utils.getGlobalVariable('SEOFields'):
-      utils.loadSystemFile( 'SEOFields', './SEOFields.json' , routeToCall );
+      utils.loadSystemFile( 'SEOFields', '../config/SEOFields.json' , routeToCall );
     break;
     case !loadSteps.messages: 
       utils.showMessage();
       loadSteps.messages = true;
       routeToCall();
     break;
-    case !utils.getGlobalVariable('contentTypes'):
-      utils.loadSystemFile( 'contentTypes', './contentTypes.json', function(){
-        if( utils.getGlobalVariable('contentTypes').length > 0 ) {
-          let contentTypesSingle = '(' + utils.getGlobalVariable('contentTypes').map(a=>a.name).join('|') +')';
-          regexExpressions.itemManagment = new RegExp('#'+contentTypesSingle+'\\/([^\/]+)',"i");
+    case !utils.getGlobalVariable('modules'):
+      // Load modules first
+      loadModules()
+        .then(modules => {
+          utils.setGlobalVariable('modules', modules);
           
-          utils.getGlobalVariable('contentTypes').reverse().forEach(contentType => {
-            document.getElementById('sidebarLinks').insertAdjacentHTML('afterbegin',  `
-              <li id='${contentType.name}_type_menu' class='contentTypeLinks'>
-                <h3>${contentType.labelPlural}</h3>
-                <ul>
-                  <li>
-                    <a class="nav-link" href="#${contentType.name}/all">${ utils.str('admin_ViewAllLink') }</a>
-                  </li>
-                  <li>
-                    <a class="nav-link" href="#${contentType.name}/new">${ utils.str('admin_AddNewLink') }</a>
-                  </li>
-                </ul>
-              </li>
-              <li><hr/></li>
-            `);
+          // Register hooks from all modules
+          const allHooks = {};
+          modules.forEach(module => {
+            if (module.hooks) {
+              Object.keys(module.hooks).forEach(hookName => {
+                if (!allHooks[hookName]) {
+                  allHooks[hookName] = [];
+                }
+                allHooks[hookName].push({
+                  module: module.name,
+                  handler: module.hooks[hookName]
+                });
+              });
+            }
           });
-        }
-        routeToCall();
-      });
+          registerHooks(allHooks);
+          
+          // Merge content types from modules
+          const moduleContentTypes = mergeContentTypes(modules);
+          
+          // Load content types from config (primary source for dynamic types)
+          utils.loadSystemFile( 'configContentTypes', '../config/contentTypes.json', function(){
+            const configContentTypes = utils.getGlobalVariable('configContentTypes') || [];
+            
+            // Combine module content types with config content types
+            // Config content types take precedence (for dynamic management)
+            const allContentTypes = [...configContentTypes, ...moduleContentTypes];
+            utils.setGlobalVariable('contentTypes', allContentTypes);
+            
+            // Continue with content type setup
+            setupContentTypes();
+          });
+        })
+        .catch(error => {
+          console.error('Error loading modules:', error);
+          // Fallback to config-only content types
+          utils.loadSystemFile( 'contentTypes', '../config/contentTypes.json', setupContentTypes );
+        });
+    break;
+    case !utils.getGlobalVariable('contentTypes'):
+      // This should not happen if modules loaded correctly, but fallback
+      utils.loadSystemFile( 'contentTypes', '../config/contentTypes.json', setupContentTypes );
     break;
     /** Content Item management **/
-    case regexExpressions.itemManagment.test(hash):
+    case regexExpressions.itemManagment && regexExpressions.itemManagment.test(hash):
       hash = hash.replace('#','');
       let params = hash.split('/');
       let contentType = params.shift();
+
+      // Check if content type exists
+      const contentTypes = utils.getGlobalVariable('contentTypes') || [];
+      const contentTypeExists = contentTypes.find(ct => ct.name === contentType);
+      
+      if (!contentTypeExists) {
+        document.getElementById('content').innerHTML = `
+          <div class="alert alert-warning">
+            <h3>Content Type Not Found</h3>
+            <p>The content type "<strong>${contentType}</strong>" does not exist.</p>
+            <p>Please create it first in <a href="#content-types">Content Types</a>.</p>
+            <a href="#content-types" class="btn btn-primary">Go to Content Types</a>
+          </div>
+        `;
+        break;
+      }
 
       // If List is requested
       if( params[0] == 'all') {
@@ -80,23 +136,42 @@ export function routeToCall(){
       /** Start form */
       contentItemLoader( contentType, id )
       .then(contentItem => {
+        // Execute beforeRender hook
+        return executeHook('beforeRender', contentItem, contentType);
+      })
+      .then(contentItem => {
         document.getElementById('content').innerHTML = '';
         document.getElementById('content').appendChild( contentItemForm(contentType ,contentItem , op) );
       })
-      // TODO: Change it to use generic hook system (support plugins)
+      .catch(error => {
+        document.getElementById('content').innerHTML = `
+          <div class="alert alert-danger">
+            <h3>Error Loading Content</h3>
+            <p>${error.message || 'An error occurred while loading the content item.'}</p>
+            <a href="#${contentType}/all" class="btn btn-secondary">Back to List</a>
+            <a href="#content-types" class="btn btn-primary" style="margin-left: 10px;">Content Types</a>
+          </div>
+        `;
+        console.error('Content item loading error:', error);
+      })
       .then( response => {  
-        Array.prototype.forEach.call( document.getElementsByClassName('wysiwyg_element') , function (wysiwyg) {
-          var suneditor = SUNEDITOR.create( wysiwyg.id , {
-            buttonList: [
-                ['undo', 'redo'],
-                ['align', 'horizontalRule', 'list', 'table', 'fontSize'],
-                ["link", "image", "video", "audio"]
-            ],
-          });
-          suneditor.onChange =  wysiwyg.onchange;
-        });        
+        if (response !== undefined) {
+          Array.prototype.forEach.call( document.getElementsByClassName('wysiwyg_element') , function (wysiwyg) {
+            var suneditor = SUNEDITOR.create( wysiwyg.id , {
+              buttonList: [
+                  ['undo', 'redo'],
+                  ['align', 'horizontalRule', 'list', 'table', 'fontSize'],
+                  ["link", "image", "video", "audio"]
+              ],
+            });
+            suneditor.onChange =  wysiwyg.onchange;
+          });        
+        }
       });
 
+    break;
+    case '#content-types'==hash:
+      contentTypeManager(document.getElementById('content'));
     break;
     case '#menu'==hash:
     case '#menus'==hash:
@@ -115,14 +190,80 @@ export function routeToCall(){
       location = '';
     break;
     default:
-      document.getElementById('content').innerHTML = '';   
+      // Check if hash looks like a content item route (e.g., #post/new, #article/123)
+      // This handles cases where no content types exist yet or the regex didn't match
+      const hashMatch = hash.match(/^#([^\/]+)\/(.+)$/);
+      if (hashMatch && hashMatch[1] && hashMatch[2]) {
+        const contentType = hashMatch[1];
+        const contentTypes = utils.getGlobalVariable('contentTypes') || [];
+        const contentTypeExists = contentTypes.find(ct => ct.name === contentType);
+        
+        if (!contentTypeExists) {
+          document.getElementById('content').innerHTML = `
+            <div class="alert alert-warning">
+              <h3>Content Type Not Found</h3>
+              <p>The content type "<strong>${contentType}</strong>" does not exist.</p>
+              <p>Please create it first in <a href="#content-types">Content Types</a>.</p>
+              <a href="#content-types" class="btn btn-primary">Go to Content Types</a>
+            </div>
+          `;
+        } else {
+          // Content type exists but route didn't match - try to handle it
+          document.getElementById('content').innerHTML = '';   
+        }
+      } else {
+        document.getElementById('content').innerHTML = '';   
+      }
     break;
+  }
+}
+
+/**
+ * Setup content types in the UI
+ */
+function setupContentTypes() {
+  const contentTypes = utils.getGlobalVariable('contentTypes') || [];
+  
+  if( contentTypes.length > 0 ) {
+    let contentTypesSingle = '(' + contentTypes.map(a=>a.name).join('|') +')';
+    regexExpressions.itemManagment = new RegExp('#'+contentTypesSingle+'\\/([^\/]+)',"i");
+    
+    contentTypes.reverse().forEach(contentType => {
+      document.getElementById('sidebarLinks').insertAdjacentHTML('afterbegin',  `
+        <li id='${contentType.name}_type_menu' class='contentTypeLinks'>
+          <h3>${contentType.labelPlural}</h3>
+          <ul>
+            <li>
+              <a class="nav-link" href="#${contentType.name}/all">${ utils.str('admin_ViewAllLink') }</a>
+            </li>
+            <li>
+              <a class="nav-link" href="#${contentType.name}/new">${ utils.str('admin_AddNewLink') }</a>
+            </li>
+          </ul>
+        </li>
+        <li><hr/></li>
+      `);
+    });
+    
+    // Update navigation after content types are added
+    initNavigation();
+    setTimeout(() => {
+      if (typeof updateActiveNav === 'function') {
+        updateActiveNav();
+      }
+    }, 100);
+  } else {
+    // No content types - ensure regex is not set so default case can handle routes
+    regexExpressions.itemManagment = null;
   }
 }
 
 /** Translation interface for 'static' string in pages */
 function translationInterface(parentElement) {
  
+  let translations = utils.getGlobalVariable('translations');
+  let appSettings = utils.getGlobalVariable('appSettings');
+  
   let fields = translations.filter(translationItem=>translationItem.ui==1)
                            .map( translationItem => `
                               <h3>${ ( translationItem.description ? translationItem.description + ' - ' : '' ) + translationItem.key }</h3>
@@ -150,7 +291,7 @@ function translationInterface(parentElement) {
       .then( renderedFiles=> { renderedFiles.push( 
         {
           "content": JSON.stringify(translations),
-          "filePath": 'admin/translations.json',
+          "filePath": 'cms-core/config/translations.json',
           "encoding": "utf-8" 
         });
         return renderedFiles;
@@ -208,10 +349,12 @@ function translatePage( items ) {
 }
 
 window.onload = function(e) { 
+  initNavigation();
   routeToCall();
 }
 
 
 window.onhashchange = function(){
+  updateActiveNav();
   routeToCall();
 };
