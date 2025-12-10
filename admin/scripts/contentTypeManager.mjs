@@ -36,20 +36,44 @@ export function contentTypeManager(parentElement) {
 
 /**
  * Load content types from config
+ * Tries site config first, then cms-core defaults, then GitHub API as last resort
  */
 async function loadContentTypes() {
     try {
-        const gitApi = utils.getGlobalVariable('gitApi');
-        if (!gitApi) {
-            const response = await fetch('../config/contentTypes.json');
-            if (response.ok) {
-                return await response.json();
-            }
-            return [];
+        // Try site config first (local fetch)
+        let response = await fetch('/config/contentTypes.json');
+        if (!response.ok) {
+            response = await fetch('../../config/contentTypes.json');
+        }
+        if (!response.ok) {
+            response = await fetch('../config/contentTypes.json');
+        }
+        if (response.ok) {
+            return await response.json();
         }
         
-        const content = await gitApi.getFile('cms-core/config/contentTypes.json');
-        return JSON.parse(content);
+        // Fall back to cms-core defaults
+        response = await fetch('/cms-core/config/contentTypes.json');
+        if (!response.ok) {
+            response = await fetch('../config/contentTypes.json');
+        }
+        if (response.ok) {
+            return await response.json();
+        }
+        
+        // Last resort: try GitHub API (only if gitApi is available and configured)
+        const gitApi = utils.getGlobalVariable('gitApi');
+        const appSettings = utils.getGlobalVariable('appSettings');
+        if (gitApi && appSettings && appSettings.GIT_Account !== 'your-username') {
+            try {
+                const content = await gitApi.getFile('config/contentTypes.json');
+                return JSON.parse(content);
+            } catch (apiError) {
+                console.warn('Could not load from GitHub API, using empty array:', apiError);
+            }
+        }
+        
+        return [];
     } catch (error) {
         console.error('Error loading content types:', error);
         return [];
@@ -60,9 +84,10 @@ async function loadContentTypes() {
  * Save content types to config
  */
 async function saveContentTypes(contentTypes) {
+    // Save to site config directory (not cms-core)
     const files = [{
         content: JSON.stringify(contentTypes, null, 4),
-        filePath: 'cms-core/config/contentTypes.json',
+        filePath: 'config/contentTypes.json',
         encoding: 'utf-8'
     }];
     
@@ -163,7 +188,7 @@ export function showContentTypeForm(contentTypeIndex = null) {
                                        value="${contentType ? contentType.name : ''}" 
                                        ${contentType ? 'readonly' : ''} 
                                        placeholder="post" 
-                                       pattern="[a-z0-9-]+"
+                                       pattern="[a-z0-9\\-]+"
                                        required>
                                 <small class="form-text text-muted">Unique identifier (lowercase, numbers, hyphens only)</small>
                             </div>
@@ -297,7 +322,7 @@ function renderFieldEditor(field, index) {
                                    value="${field.name || ''}" 
                                    placeholder="title" 
                                    required
-                                   pattern="[a-z0-9-_]+">
+                                   pattern="[a-z0-9\\-_]+">
                             <small class="form-text text-muted">Internal identifier</small>
                         </div>
                     </div>

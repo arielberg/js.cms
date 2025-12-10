@@ -35,6 +35,7 @@ export let getLocalStorage = function(property) {
 /**
  * Load settings file (JSON). 
  * called from the page loader flow
+ * Tries site config first, then falls back to cms-core defaults
  */
 export let loadSystemFile = function( variableName , filePath, onSuccess ) {
 
@@ -46,19 +47,46 @@ export let loadSystemFile = function( variableName , filePath, onSuccess ) {
   
     window[variableName] = {};
     
-    fetch(filePath)
-      .then(function(response){
-        if (!response.ok) {
-          throw Error(response.statusText);
-        }
-        return response.json();
-      }).then(function(json){
-          window[variableName] = json;
-          onSuccess();
-        })
-      .catch(function(error) {
-        console.error( 'Error Loading system file', error , variableName , filePath );
-      });
+    // Extract filename from path (e.g., "appSettings.json" from "../config/appSettings.json")
+    const fileName = filePath.split('/').pop();
+    
+    // Try site config first (root level), then fall back to provided path (cms-core defaults)
+    const pathsToTry = [
+      `/config/${fileName}`,           // Site config at root
+      `../../config/${fileName}`,      // Site config relative from admin
+      `../config/${fileName}`,         // Site config relative
+      filePath                         // Original path (cms-core defaults)
+    ];
+    
+    let currentPathIndex = 0;
+    
+    function tryNextPath() {
+      if (currentPathIndex >= pathsToTry.length) {
+        console.error( 'Error Loading system file: all paths failed', variableName , pathsToTry );
+        onSuccess(); // Call onSuccess anyway to continue flow
+        return;
+      }
+      
+      const currentPath = pathsToTry[currentPathIndex];
+      currentPathIndex++;
+      
+      fetch(currentPath)
+        .then(function(response){
+          if (!response.ok) {
+            throw Error(response.statusText);
+          }
+          return response.json();
+        }).then(function(json){
+            window[variableName] = json;
+            onSuccess();
+          })
+        .catch(function(error) {
+          // Try next path
+          tryNextPath();
+        });
+    }
+    
+    tryNextPath();
   }
 /**
  * Get translation string by string key

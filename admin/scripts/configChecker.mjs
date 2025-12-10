@@ -8,15 +8,24 @@
  */
 export async function checkConfiguration() {
   try {
-    // Try multiple paths to find the config file
-    let response = await fetch('../config/appSettings.json');
+    // Check site config first (takes precedence), then fall back to cms-core defaults
+    // Try site config at root level
+    let response = await fetch('/config/appSettings.json');
     if (!response.ok) {
-      // Try alternative path
+      // Try relative path from admin
       response = await fetch('../../config/appSettings.json');
     }
     if (!response.ok) {
-      // Try absolute path from root
+      // Try another relative path
+      response = await fetch('../config/appSettings.json');
+    }
+    if (!response.ok) {
+      // Fall back to cms-core defaults
       response = await fetch('/cms-core/config/appSettings.json');
+    }
+    if (!response.ok) {
+      // Try relative path to cms-core config
+      response = await fetch('../config/appSettings.json');
     }
     if (!response.ok) {
       return { configured: false, reason: 'appSettings.json not found' };

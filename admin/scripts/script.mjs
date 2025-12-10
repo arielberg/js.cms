@@ -36,6 +36,7 @@ export function routeToCall(){
     break;
     /** Page loader - init variables **/
     case !utils.getGlobalVariable('appSettings'):
+      // loadSystemFile will try site config first, then cms-core defaults
       utils.loadSystemFile( 'appSettings', '../config/appSettings.json' , routeToCall );
     break;
     /** Page loader - init variables **/
@@ -79,7 +80,8 @@ export function routeToCall(){
           // Merge content types from modules
           const moduleContentTypes = mergeContentTypes(modules);
           
-          // Load content types from config (primary source for dynamic types)
+          // Load content types from site config (primary source for dynamic types)
+          // loadSystemFile will try site config first, then cms-core defaults
           utils.loadSystemFile( 'configContentTypes', '../config/contentTypes.json', function(){
             const configContentTypes = utils.getGlobalVariable('configContentTypes') || [];
             
@@ -95,11 +97,13 @@ export function routeToCall(){
         .catch(error => {
           console.error('Error loading modules:', error);
           // Fallback to config-only content types
+          // loadSystemFile will try site config first, then cms-core defaults
           utils.loadSystemFile( 'contentTypes', '../config/contentTypes.json', setupContentTypes );
         });
     break;
     case !utils.getGlobalVariable('contentTypes'):
       // This should not happen if modules loaded correctly, but fallback
+      // loadSystemFile will try site config first, then cms-core defaults
       utils.loadSystemFile( 'contentTypes', '../config/contentTypes.json', setupContentTypes );
     break;
     /** Content Item management **/

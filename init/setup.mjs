@@ -31,7 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function checkIfAlreadyConfigured() {
     try {
-        const response = await fetch('../config/appSettings.json');
+        // Check site config first, then cms-core defaults
+        let response = await fetch('/config/appSettings.json');
+        if (!response.ok) {
+            response = await fetch('../../config/appSettings.json');
+        }
+        if (!response.ok) {
+            response = await fetch('../config/appSettings.json');
+        }
+        if (!response.ok) {
+            // Fall back to cms-core defaults
+            response = await fetch('/cms-core/config/appSettings.json');
+        }
         if (!response.ok) return;
         
         const appSettings = await response.json();
@@ -84,7 +95,18 @@ async function checkIfAlreadyConfigured() {
  */
 async function loadExistingConfig() {
     try {
-        const response = await fetch('../config/appSettings.json');
+        // Check site config first, then cms-core defaults
+        let response = await fetch('/config/appSettings.json');
+        if (!response.ok) {
+            response = await fetch('../../config/appSettings.json');
+        }
+        if (!response.ok) {
+            response = await fetch('../config/appSettings.json');
+        }
+        if (!response.ok) {
+            // Fall back to cms-core defaults
+            response = await fetch('/cms-core/config/appSettings.json');
+        }
         if (response.ok) {
             const existing = await response.json();
             if (existing.GIT_Account && existing.GIT_Repository) {
@@ -276,7 +298,7 @@ async function saveConfiguration() {
     testResult.innerHTML = `
         <div class="alert alert-info">
             <h5>💾 Save Configuration</h5>
-            <p>Copy the configuration below and save it to <code>cms-core/config/appSettings.json</code>:</p>
+            <p>Copy the configuration below and save it to <code>config/appSettings.json</code> (site repository):</p>
             <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;"><code>${escapeHtml(configJson)}</code></pre>
             <button class="btn btn-sm btn-primary mt-2" onclick="copyConfig()">Copy Configuration</button>
             <button class="btn btn-sm btn-success mt-2" onclick="saveViaAPI()">Save via API (Recommended)</button>
@@ -316,7 +338,7 @@ async function saveViaAPI() {
         
         // Check if file exists
         const checkResponse = await fetch(
-            `https://api.github.com/repos/${config.gitAccount}/${config.gitRepository}/contents/cms-core/config/appSettings.json`,
+            `https://api.github.com/repos/${config.gitAccount}/${config.gitRepository}/contents/config/appSettings.json`,
             {
                 headers: {
                     'Authorization': `token ${config.githubToken}`,
@@ -358,7 +380,7 @@ async function saveViaAPI() {
         
         // Create or update file
         const saveResponse = await fetch(
-            `https://api.github.com/repos/${config.gitAccount}/${config.gitRepository}/contents/cms-core/config/appSettings.json`,
+            `https://api.github.com/repos/${config.gitAccount}/${config.gitRepository}/contents/config/appSettings.json`,
             {
                 method: 'PUT',
                 headers: {
@@ -399,7 +421,7 @@ async function saveViaAPI() {
                 <p>Please save the configuration manually:</p>
                 <ol>
                     <li>Copy the configuration JSON shown above</li>
-                    <li>Create/edit <code>cms-core/config/appSettings.json</code> in your repository</li>
+                    <li>Create/edit <code>config/appSettings.json</code> in your site repository</li>
                     <li>Paste the configuration and commit</li>
                 </ol>
                 <button class="btn btn-sm btn-primary mt-2" onclick="copyConfig()">Copy Configuration</button>
