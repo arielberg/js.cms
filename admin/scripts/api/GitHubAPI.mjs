@@ -15,7 +15,7 @@ export let getApi = function(  ) {
   return getRepo().fetch()
     .then(e=>{
         repo = e;
-        return e.git.refs('heads/master').fetch();
+        return e.git.refs('heads/main').fetch();
     })
     .then(e=>{
         return e;
@@ -62,7 +62,7 @@ export let commitChanges = async function( commitMessage, files ) {
   document.body.classList.add('loading');
   return getRepo().fetch()
     .then( repo =>{
-      return repo.git.refs('heads/master').fetch()
+      return repo.git.refs('heads/main').fetch()
         .then(main=> {
           // build files
           return  Promise.all(
@@ -82,21 +82,36 @@ export let commitChanges = async function( commitMessage, files ) {
                     tree: tree.sha,
                     parents: [main.object.sha] })
                 }).then( commit => {
-                  console.log('tree has been added');
-                  return main.update({sha: commit.sha});
+                  console.log('tree has been added, commit SHA:', commit.sha);
+                  return main.update({sha: commit.sha}).then(ref => {
+                    // Return both the commit and ref for verification
+                    return {
+                      commit: commit,
+                      ref: ref,
+                      sha: commit.sha,
+                      success: true
+                    };
+                  });
                 });
               })
               .then( res=> {
-                utils.successMessage('Item saved successfully', res);
+                console.log('Commit successful:', res);
+                // Verify the commit actually succeeded
+                if (!res || !res.sha || !res.success) {
+                  console.error('Commit response invalid:', res);
+                  throw new Error('Commit response invalid');
+                }
+                console.log('Commit verified - SHA:', res.sha);
                 return res;
               })
-              .catch( res=> {
-                utils.errorHandler(res);
-                return res;
-              })
-              .finally( res=>{
+              .catch( error=> {
+                console.error('Commit failed:', error);
                 document.body.classList.remove('loading');
-                return res;
+                // Re-throw the error so the caller can handle it
+                throw error;
+              })
+              .finally( ()=>{
+                document.body.classList.remove('loading');
               });
           });
         });

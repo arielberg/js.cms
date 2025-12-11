@@ -148,6 +148,20 @@ export function contentItem ( contentType , ItemId ) {
                 "encoding": "utf-8" 
               }]);
             })
+            .catch(error => {
+              // If renderPage fails (e.g., template fetch error), continue with just JSON
+              console.warn('Failed to render page template, continuing with JSON only:', error.message);
+              let itemToSave = JSON.parse(JSON.stringify(this));
+              delete itemToSave.attachments;
+              delete itemToSave.isNew;
+              delete itemToSave.files;
+              // Return just the JSON file if template rendering fails
+              return [{
+                "content":  JSON.stringify(itemToSave),
+                "filePath": this.getURL(false)+'/index.json',
+                "encoding": "utf-8" 
+              }];
+            })
             /*** Add Attachments ***/
             .then( files => {
               if ( this.attachments.length == 0 )  return files;
@@ -187,8 +201,25 @@ export function contentItem ( contentType , ItemId ) {
     let appSettings = utils.getGlobalVariable('appSettings');
     let APIconnect = utils.getGlobalVariable('gitApi');
  
+    // Try local fetch first, then fallback to GitHub API
+    // Use relative path (relative to admin/ directory where index.html is)
     return fetch('templates/base.html')
-            .then(result=> result.text())
+            .then(result => {
+              if (result.ok) {
+                return result.text();
+              }
+              throw new Error(`HTTP ${result.status}: ${result.statusText}`);
+            })
+            .catch(error => {
+              // Log the error for debugging
+              console.log('Local template fetch failed, trying GitHub API:', error.message);
+              // Fallback to GitHub API
+              return APIconnect.getFile('cms-core/admin/templates/base.html')
+                .catch(apiError => {
+                  console.error('Both local and GitHub API fetch failed:', apiError);
+                  throw new Error('Failed to load base template from both local server and GitHub API');
+                });
+            })
             .then( baseTemplate => {
               // TODO: Support multiple menus
               // Try local fetch first, then GitHub API
@@ -281,8 +312,12 @@ export async function contentItemLoader ( contentType , ItemId ) {
     });
     return contentObject;   
   }
+  else if (contentObject.isNew) {
+    // For new items, don't try to fetch from API - just return with defaults
+    return Promise.resolve(contentObject);
+  }
   else {
-    // load item details
+    // load item details for existing items
     let APIconnect = utils.getGlobalVariable('gitApi');
     return APIconnect.getFile (contentObject.getURL(false)+'/index.json')
             .then( res => { return JSON.parse(res) })
@@ -294,6 +329,8 @@ export async function contentItemLoader ( contentType , ItemId ) {
                 return contentObject;       
             })
             .catch(err=> {
+              // If file doesn't exist, return object with defaults
+              console.log('Content file does not exist, using defaults:', contentObject.getURL(false)+'/index.json');
               return contentObject
             });
   }
@@ -406,7 +443,6 @@ export function contentItemForm ( contentType , editedItem , op ) {
           .catch(error => {
             console.error('Error in delete process:', error);
             utils.errorHandler(error);
-          }) 
           });
         }
       break;
@@ -627,8 +663,14 @@ export function contentItemForm ( contentType , editedItem , op ) {
           editedItem.getRepositoryFiles()
           /*** Update Searchable List ***/ 
           .then( files => {
+            console.log('Repository files prepared:', files.length, 'files');
+            if (!files || files.length === 0) {
+              throw new Error('No files to save. Please check that the content item has valid data.');
+            }
             return getUpdatedSearchFile('search/'+contentType+'.json').then( searchFiles => {
-              return  files.concat(searchFiles);
+              const allFiles = files.concat(searchFiles);
+              console.log('Total files to commit:', allFiles.length, '(content:', files.length, ', search:', searchFiles.length, ')');
+              return allFiles;
             })
             .catch(error => {
               // If search file update fails, continue with just the content files
@@ -637,23 +679,37 @@ export function contentItemForm ( contentType , editedItem , op ) {
             });
           })
           .then(files => {
+            if (!files || files.length === 0) {
+              throw new Error('No files to commit');
+            }
+            console.log('Committing', files.length, 'files...');
             return commitFiles('Save '+ contentType +': ' + editedItem.id , files )
             .then(res => {
-              localStorage.removeItem( editedItem.type+'/' + editedItem.id );
-              localStorage.removeItem( editedItem.type+'/new' );
-              utils.successMessage('Item saved successfully');
-              utils.gotoList( contentType );
-              return res;
+              // Verify commit actually succeeded - must have sha
+              if (res && res.sha && !res.error) {
+                console.log('Commit verified - SHA:', res.sha);
+                localStorage.removeItem( editedItem.type+'/' + editedItem.id );
+                localStorage.removeItem( editedItem.type+'/new' );
+                utils.successMessage('Item saved successfully');
+                utils.gotoList( contentType );
+                return res;
+              } else {
+                console.error('Commit verification failed:', res);
+                throw new Error(res?.error || res?.message || 'Commit failed - invalid response');
+              }
             })
             .catch(error => {
               console.error('Error saving item:', error);
+              // Show error message to user
+              const errorMsg = error?.message || error?.error || 'Failed to save item. Please check console for details.';
               utils.errorHandler(error);
-              throw error;
+              // Don't redirect - let user fix and try again
+              return Promise.reject(error);
             });
           })
           .catch(error => {
             console.error('Error in save process:', error);
-            utils.errorHandler(error);
+            // Error already handled in inner catch, just log here
           })         
         }
 
@@ -791,16 +847,39 @@ export function contentList( parentElement, contentType ) {
   }
   let pageTitle  =  typeData.labelPlural;
   
-  APIconnect.getFile('search/'+contentType+'.json')
-    .then(response=>{
-      return JSON.parse(response);
-    })
-    .catch(exception=>{
-      console.log(exception);
-      return [];
-    })
+  // Try to load search file with retries (GitHub API may have propagation delay after commit)
+  function loadSearchFileWithRetry(retries = 3, delay = 2000) {
+    return APIconnect.getFile('search/'+contentType+'.json')
+      .then(response => JSON.parse(response))
+      .catch(exception => {
+        // File might not exist yet or GitHub API hasn't propagated the commit yet
+        console.log(`Search file not found (attempt ${4-retries}/3, may be timing issue after commit):`, exception);
+        if (retries > 0) {
+          // Retry after delay
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              loadSearchFileWithRetry(retries - 1, delay).then(resolve).catch(() => resolve([]));
+            }, delay);
+          });
+        }
+        // All retries failed, return empty array
+        return [];
+      });
+  }
+  
+  return loadSearchFileWithRetry()
     .then(items=>{
-      if(items.length==0) {throw 'empty';}
+      if(items.length==0) {
+        // Show message that list is empty, not an error
+        parentElement.innerHTML = `
+          <div class="alert alert-info">
+            <h3>No items found</h3>
+            <p>This content type doesn't have any items yet.</p>
+            <a href="#${contentType}/new" class="btn btn-primary">Create First Item</a>
+          </div>
+        `;
+        return;
+      }
       parentElement.innerHTML = `
                   <div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">

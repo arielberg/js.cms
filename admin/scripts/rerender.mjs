@@ -89,10 +89,27 @@ export function rederCustomPages() {
     
     let languages = appSettings.Lanugages;
     
+    // Use relative path (relative to admin/ directory where index.html is)
     let wrapperPath = 'templates/base.html';
    
     return fetch( wrapperPath )
-            .then( res => res.text() )
+            .then( res => {
+              if (res.ok) {
+                return res.text();
+              }
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            })
+            .catch(error => {
+              // Log the error for debugging
+              console.log('Local template fetch failed, trying GitHub API:', error.message);
+              // Fallback to GitHub API
+              const APIconnect = utils.getGlobalVariable('gitApi');
+              return APIconnect.getFile('cms-core/admin/templates/base.html')
+                .catch(apiError => {
+                  console.error('Both local and GitHub API fetch failed:', apiError);
+                  throw new Error('Failed to load base template from both local server and GitHub API');
+                });
+            })
             .then( pageWrapper => {
                 return Promise.all([
                         // Try local fetch first for menus

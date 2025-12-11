@@ -20,15 +20,25 @@ let loadSteps = {};
 export function routeToCall(){
 
   let hash = window.location.hash;
+  
+  // Debug logging
+  console.log('routeToCall - hash:', hash, 'configChecked:', loadSteps.configChecked);
  
   switch(true) {
     /** Configuration check - redirect to setup if not configured **/
     case !loadSteps.configChecked:
+      console.log('Checking configuration...');
       ensureConfigured().then(isConfigured => {
+        console.log('Configuration check result:', isConfigured);
         if (!isConfigured) {
           // Redirect will happen, don't continue
           return;
         }
+        loadSteps.configChecked = true;
+        routeToCall();
+      }).catch(error => {
+        console.error('Configuration check error:', error);
+        // Continue anyway to avoid getting stuck
         loadSteps.configChecked = true;
         routeToCall();
       });
@@ -41,10 +51,15 @@ export function routeToCall(){
     break;
     /** Page loader - init variables **/
     case !utils.getGlobalVariable('translations'):
-      utils.loadSystemFile( 'translations', '../config/translations.json' , translatePage );
+      utils.loadSystemFile( 'translations', '../config/translations.json' , function() {
+        translatePage();
+        routeToCall(); // Continue routing after translations are loaded
+      });
     break;
     case !utils.getGlobalVariable('gitApi'):
+      console.log('gitApi not set, showing login...');
       doLogin(document.getElementById('content'));
+      return; // Exit early, login will call routeToCall when done
     break;
     case !utils.getGlobalVariable('SEOFields'):
       utils.loadSystemFile( 'SEOFields', '../config/SEOFields.json' , routeToCall );
@@ -117,6 +132,7 @@ export function routeToCall(){
       const contentTypeExists = contentTypes.find(ct => ct.name === contentType);
       
       if (!contentTypeExists) {
+        hideLoadingMessage();
         document.getElementById('content').innerHTML = `
           <div class="alert alert-warning">
             <h3>Content Type Not Found</h3>
@@ -130,6 +146,7 @@ export function routeToCall(){
 
       // If List is requested
       if( params[0] == 'all') {
+        hideLoadingMessage();
         contentList(document.getElementById('content'), contentType );
         return;
       }
@@ -138,6 +155,7 @@ export function routeToCall(){
       let op = ( params.length > 0 )? params[0] : 'edit';
       
       /** Start form */
+      hideLoadingMessage();
       contentItemLoader( contentType, id )
       .then(contentItem => {
         // Execute beforeRender hook
@@ -148,6 +166,7 @@ export function routeToCall(){
         document.getElementById('content').appendChild( contentItemForm(contentType ,contentItem , op) );
       })
       .catch(error => {
+        hideLoadingMessage();
         document.getElementById('content').innerHTML = `
           <div class="alert alert-danger">
             <h3>Error Loading Content</h3>
@@ -175,16 +194,20 @@ export function routeToCall(){
 
     break;
     case '#content-types'==hash:
+      hideLoadingMessage();
       contentTypeManager(document.getElementById('content'));
     break;
     case '#menu'==hash:
     case '#menus'==hash:
+      hideLoadingMessage();
       menuBuilder(document.getElementById('content'));
     break;
     case '#rerender'==hash:
+      hideLoadingMessage();
       rerenderer(document.getElementById('content'));
     break;
     case '#translate'==hash:
+      hideLoadingMessage();
       translationInterface(document.getElementById('content'));
     break;
     case '#logout'==hash:
@@ -203,6 +226,7 @@ export function routeToCall(){
         const contentTypeExists = contentTypes.find(ct => ct.name === contentType);
         
         if (!contentTypeExists) {
+          hideLoadingMessage();
           document.getElementById('content').innerHTML = `
             <div class="alert alert-warning">
               <h3>Content Type Not Found</h3>
@@ -213,12 +237,41 @@ export function routeToCall(){
           `;
         } else {
           // Content type exists but route didn't match - try to handle it
+          hideLoadingMessage();
           document.getElementById('content').innerHTML = '';   
         }
       } else {
-        document.getElementById('content').innerHTML = '';   
+        // No hash or unrecognized route - show default dashboard or hide loading
+        hideLoadingMessage();
+        // Show default dashboard or welcome message
+        if (!hash || hash === '#' || hash === '') {
+          document.getElementById('content').innerHTML = `
+            <div class="welcome-message">
+              <h2>Welcome to CMS Builder</h2>
+              <p>Use the sidebar to navigate:</p>
+              <ul>
+                <li><a href="#content-types">Content Types</a> - Manage your content types</li>
+                <li><a href="#menus">Menus</a> - Manage navigation menus</li>
+                <li><a href="#translate">Translation Interface</a> - Manage translations</li>
+                <li><a href="#rerender">Rebuild</a> - Rebuild static pages</li>
+              </ul>
+            </div>
+          `;
+        } else {
+          document.getElementById('content').innerHTML = '';   
+        }
       }
     break;
+  }
+}
+
+/**
+ * Hide the loading message
+ */
+function hideLoadingMessage() {
+  const loadingMessage = document.getElementById('loadingMessage');
+  if (loadingMessage) {
+    loadingMessage.style.display = 'none';
   }
 }
 

@@ -23,6 +23,11 @@ export function doLogin( parentComponent ) {
           .then( api_gateway => {
             utils.setGlobalVariable( 'gitApi', api );
             document.getElementById('pageWrapper').classList.remove('hideLeftBar');
+            // Hide loading message once logged in
+            const loadingMessage = document.getElementById('loadingMessage');
+            if (loadingMessage) {
+              loadingMessage.style.display = 'none';
+            }
             main.routeToCall();
           })
           .catch( errorMessage=> {
@@ -38,6 +43,11 @@ export function doLogin( parentComponent ) {
    * @param {*} errorMessage 
    */
   let loadLoginForm = function( errorMessage ) {
+    // Hide loading message when showing login form
+    const loadingMessage = document.getElementById('loadingMessage');
+    if (loadingMessage) {
+      loadingMessage.style.display = 'none';
+    }
     // create login form
     parentComponent.innerHTML = `<form className='loginForm'>
                                   <h3>Login</h3>

@@ -749,7 +749,6 @@ var Octokat = function Octokat() {
 
 // module.exports = Octokat;
 module.exports = Octokat;
-//# sourceMappingURL=octokat.js.map
 
 /***/ }),
 /* 9 */
@@ -2263,4 +2262,3 @@ module.exports = new (function () {
 /***/ })
 /******/ ]);
 });
-//# sourceMappingURL=octokat.js.map
