@@ -36,12 +36,17 @@ export function contentItem ( contentType , ItemId ) {
   let existsItemsIds = [];
   if ( this.isNew ) {
     let APIconnect = utils.getGlobalVariable('gitApi');
-    APIconnect.getFile ('/search/'+contentType+'.json')
+    APIconnect.getFile ('search/'+contentType+'.json')
               .then(response => {
                 return JSON.parse(response)
               })
               .then( fileJson => {
                 existsItemsIds = fileJson.map(i=>i.id);
+              })
+              .catch(error => {
+                // Search file doesn't exist yet - that's OK for new items
+                console.log('Search file does not exist yet:', 'search/'+contentType+'.json');
+                existsItemsIds = [];
               });
   }
   
@@ -379,12 +384,29 @@ export function contentItemForm ( contentType , editedItem , op ) {
             return getUpdatedSearchFile('search/'+contentType+'.json', true).then( searchFiles => {
               return  files.concat(searchFiles);
             })
+            .catch(error => {
+              // If search file update fails, continue with just the delete files
+              console.warn('Failed to update search file during delete, continuing:', error);
+              return files;
+            });
           })
           .then(files => {
-            commitFiles('Delete '+ contentType +': ' + editedItem.id , files )
+            return commitFiles('Delete '+ contentType +': ' + editedItem.id , files )
             .then(res => {
+              utils.successMessage('Item deleted successfully');
               utils.gotoList( contentType );
-            }); 
+              return res;
+            })
+            .catch(error => {
+              console.error('Error deleting item:', error);
+              utils.errorHandler(error);
+              throw error;
+            });
+          })
+          .catch(error => {
+            console.error('Error in delete process:', error);
+            utils.errorHandler(error);
+          }) 
           });
         }
       break;
@@ -608,14 +630,30 @@ export function contentItemForm ( contentType , editedItem , op ) {
             return getUpdatedSearchFile('search/'+contentType+'.json').then( searchFiles => {
               return  files.concat(searchFiles);
             })
+            .catch(error => {
+              // If search file update fails, continue with just the content files
+              console.warn('Failed to update search file, continuing with save:', error);
+              return files;
+            });
           })
           .then(files => {
-            commitFiles('Save '+ contentType +': ' + editedItem.id , files )
+            return commitFiles('Save '+ contentType +': ' + editedItem.id , files )
             .then(res => {
               localStorage.removeItem( editedItem.type+'/' + editedItem.id );
               localStorage.removeItem( editedItem.type+'/new' );
+              utils.successMessage('Item saved successfully');
               utils.gotoList( contentType );
-            }); 
+              return res;
+            })
+            .catch(error => {
+              console.error('Error saving item:', error);
+              utils.errorHandler(error);
+              throw error;
+            });
+          })
+          .catch(error => {
+            console.error('Error in save process:', error);
+            utils.errorHandler(error);
           })         
         }
 
@@ -654,12 +692,20 @@ export function contentItemForm ( contentType , editedItem , op ) {
    */
   let getUpdatedSearchFile = function ( filePath , isDeleted ) {
     let APIconnect = utils.getGlobalVariable('gitApi');
+    // Use the filePath parameter, or construct from contentType if not provided
+    const searchFilePath = filePath || ('search/'+contentType+'.json');
+    // Remove leading slash - search file may not exist yet (that's OK)
+    const normalizedPath = searchFilePath.replace(/^\/+/, '');
+    
     return APIconnect
-            .getFile ('/search/'+contentType+'.json')
+            .getFile(normalizedPath)
             .then(response => {
               return JSON.parse(response)
             })
             .catch(error => { 
+              // Search file doesn't exist yet - that's fine, return empty array
+              // This is normal for the first item of a content type
+              console.log('Search file does not exist yet, will be created:', normalizedPath);
               return [];
             })
             .then( fileJson => {
@@ -678,10 +724,10 @@ export function contentItemForm ( contentType , editedItem , op ) {
                 
                 typeData.fields.forEach(fieldData=>{
                   if ( ['image', 'file'].indexOf(fieldData.type) > -1 ) {
+                    // Skip these fields in search index
                   }
-                  if ( ['wysiwyg','textfield'].indexOf(fieldData.type) > -1 ) {
+                  else if ( ['wysiwyg','textfield'].indexOf(fieldData.type) > -1 ) {
                     indexedItem[fieldData.name] = getCleanText( editedItem[fieldData.name] );
-                    return;
                   }
                   else {
                     indexedItem[fieldData.name] = editedItem[fieldData.name];
@@ -695,7 +741,7 @@ export function contentItemForm ( contentType , editedItem , op ) {
 
               return [{
                 "content": JSON.stringify(fileJson),
-                "filePath": filePath,
+                "filePath": normalizedPath,
                 "encoding": "utf-8"
               }];
             });
