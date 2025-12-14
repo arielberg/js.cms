@@ -8,6 +8,7 @@ import { registerHooks, executeHook } from '../../core/hooks/hookSystem.mjs';
 import { contentTypeManager } from './contentTypeManager.mjs';
 import { ensureConfigured } from './configChecker.mjs';
 import { initNavigation, updateActiveNav } from './navigation.mjs';
+import { getFixedContentTypes } from '../../core/fixedContentTypes.mjs';
 
 
 /**
@@ -100,9 +101,20 @@ export function routeToCall(){
           utils.loadSystemFile( 'configContentTypes', '../config/contentTypes.json', function(){
             const configContentTypes = utils.getGlobalVariable('configContentTypes') || [];
             
-            // Combine module content types with config content types
-            // Config content types take precedence (for dynamic management)
-            const allContentTypes = [...configContentTypes, ...moduleContentTypes];
+            // Get fixed content types (pages, blocks) - always available
+            const fixedContentTypes = getFixedContentTypes();
+            
+            // Merge: fixed types first, then config types, then module types
+            // Fixed types take highest precedence, config types can override module types
+            // Remove duplicates by name (later ones override earlier ones)
+            const allContentTypesMap = new Map();
+            
+            // Add in order: fixed -> config -> modules (later override earlier)
+            [...fixedContentTypes, ...configContentTypes, ...moduleContentTypes].forEach(ct => {
+              allContentTypesMap.set(ct.name, ct);
+            });
+            
+            const allContentTypes = Array.from(allContentTypesMap.values());
             utils.setGlobalVariable('contentTypes', allContentTypes);
             
             // Continue with content type setup

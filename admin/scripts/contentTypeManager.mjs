@@ -5,6 +5,7 @@
 
 import * as utils from './utils.js';
 import { commitFiles } from './contentItem.mjs';
+import { isFixedContentType, getFixedContentTypes } from '../../core/fixedContentTypes.mjs';
 
 let fieldCounter = 0;
 
@@ -30,13 +31,27 @@ export function contentTypeManager(parentElement) {
     `;
     
     // Load content types with cache-busting
-    loadContentTypes().then(contentTypes => {
+    loadContentTypes().then(configContentTypes => {
+        // Merge with fixed content types
+        const fixedContentTypes = getFixedContentTypes();
+        const allContentTypesMap = new Map();
+        
+        // Fixed types first, then config types (config can override fixed if needed)
+        [...fixedContentTypes, ...configContentTypes].forEach(ct => {
+            allContentTypesMap.set(ct.name, ct);
+        });
+        
+        const allContentTypes = Array.from(allContentTypesMap.values());
+        
         // Store in window for form editing
-        window.contentTypesList = contentTypes;
-        displayContentTypes(contentTypes);
+        window.contentTypesList = allContentTypes;
+        displayContentTypes(allContentTypes);
     }).catch(error => {
         console.error('Error loading content types:', error);
-        displayContentTypes([]);
+        // Still show fixed types even if config fails to load
+        const fixedContentTypes = getFixedContentTypes();
+        window.contentTypesList = fixedContentTypes;
+        displayContentTypes(fixedContentTypes);
     });
 }
 
@@ -141,17 +156,19 @@ function displayContentTypes(contentTypes) {
         return;
     }
     
-    listContainer.innerHTML = contentTypes.map((ct, index) => `
+    listContainer.innerHTML = contentTypes.map((ct, index) => {
+        const isFixed = ct.fixed || isFixedContentType(ct.name);
+        return `
         <div class="content-type-card" data-index="${index}">
             <div class="card-header">
-                <h3>${ct.label}</h3>
+                <h3>${ct.label} ${isFixed ? '<span class="badge badge-info" title="Fixed content type - cannot be deleted">Fixed</span>' : ''}</h3>
                 <div class="card-actions">
                     <button class="btn btn-sm btn-primary" onclick="window.editContentType(${index})" title="Edit">
                         Edit
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="window.deleteContentType(${index})" title="Delete">
+                    ${!isFixed ? `<button class="btn btn-sm btn-danger" onclick="window.deleteContentType(${index})" title="Delete">
                         Delete
-                    </button>
+                    </button>` : '<span class="text-muted" style="font-size: 0.85em;">Cannot delete</span>'}
                 </div>
             </div>
             <div class="card-body">
@@ -179,7 +196,8 @@ function displayContentTypes(contentTypes) {
                 <a href="#${ct.name}/new" class="btn btn-sm btn-outline-success">Add New</a>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
     
     window.contentTypesList = contentTypes;
 }
@@ -651,6 +669,14 @@ async function saveContentType(editIndex) {
     
     let contentTypes = window.contentTypesList || [];
     
+    // Check if trying to edit/override a fixed content type
+    if (isFixedContentType(name)) {
+        // Allow editing fixed types but warn user
+        if (!confirm('You are editing a fixed content type. Changes will be saved but the content type will always be available. Continue?')) {
+            return;
+        }
+    }
+    
     if (editIndex !== null) {
         contentTypes[editIndex] = contentType;
     } else {
@@ -673,17 +699,23 @@ async function saveContentType(editIndex) {
     
     try {
         console.log('Calling saveContentTypes...');
-        const result = await saveContentTypes(contentTypes);
+        
+        // Filter out fixed content types before saving (they're always loaded from code)
+        const fixedContentTypes = getFixedContentTypes();
+        const fixedTypeNames = new Set(fixedContentTypes.map(ct => ct.name));
+        const contentTypesToSave = contentTypes.filter(ct => !fixedTypeNames.has(ct.name));
+        
+        const result = await saveContentTypes(contentTypesToSave);
         console.log('saveContentTypes result:', result);
         
         // Clear cached content types from localStorage to force fresh load
         localStorage.removeItem('configContentTypes');
         localStorage.removeItem('contentTypes');
         
-        // Update global variable immediately
+        // Update global variable immediately (include fixed types)
         window.contentTypesList = contentTypes;
         utils.setGlobalVariable('contentTypes', contentTypes);
-        utils.setGlobalVariable('configContentTypes', contentTypes);
+        utils.setGlobalVariable('configContentTypes', contentTypesToSave);
         
         console.log('Content type saved successfully');
         utils.successMessage('Content type saved successfully');
@@ -732,11 +764,19 @@ function editContentType(index) {
  * Delete content type
  */
 async function deleteContentType(index) {
+    const contentTypes = window.contentTypesList || [];
+    const contentType = contentTypes[index];
+    
+    // Check if it's a fixed content type
+    if (contentType && (contentType.fixed || isFixedContentType(contentType.name))) {
+        utils.errorHandler({ message: 'Cannot delete fixed content types (pages and blocks are always available)' });
+        return;
+    }
+    
     if (!confirm('Are you sure you want to delete this content type? This action cannot be undone.')) {
         return;
     }
     
-    const contentTypes = window.contentTypesList || [];
     contentTypes.splice(index, 1);
     
     try {

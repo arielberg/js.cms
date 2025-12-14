@@ -1,6 +1,7 @@
 import * as utils from '../admin/scripts/utils.js';
 import { contentItemLoader } from '../admin/scripts/contentItem.mjs';
 import { renderMenu } from '../admin/scripts/contentItem.mjs';
+import { getFixedContentTypes } from '../core/fixedContentTypes.mjs';
 
 /**
  * Frontend Router - Handles rendering of the public-facing site
@@ -36,8 +37,19 @@ async function loadConfiguration() {
   utils.setGlobalVariable('appSettings', appSettings);
   
   // Load contentTypes
-  contentTypes = await loadJSONFile('config/contentTypes.json', 'cms-core/config/contentTypes.json');
-  if (!Array.isArray(contentTypes)) contentTypes = [];
+  const configContentTypes = await loadJSONFile('config/contentTypes.json', 'cms-core/config/contentTypes.json');
+  const loadedContentTypes = Array.isArray(configContentTypes) ? configContentTypes : [];
+  
+  // Merge with fixed content types (pages, blocks)
+  const fixedContentTypes = getFixedContentTypes();
+  const allContentTypesMap = new Map();
+  
+  // Fixed types first, then loaded types (loaded can override fixed if needed)
+  [...fixedContentTypes, ...loadedContentTypes].forEach(ct => {
+    allContentTypesMap.set(ct.name, ct);
+  });
+  
+  contentTypes = Array.from(allContentTypesMap.values());
   utils.setGlobalVariable('contentTypes', contentTypes);
   
   // Load translations
@@ -136,6 +148,52 @@ function matchContentType(path) {
  */
 async function renderHomepage() {
   try {
+    // First, try to find a page with id "homepage" or "home"
+    const pageContentType = contentTypes.find(ct => ct.name === 'page');
+    if (pageContentType) {
+      try {
+        // Try to load homepage page
+        const homepagePage = await contentItemLoader('page', 'homepage');
+        if (homepagePage && homepagePage.title) {
+          const defaultLang = appSettings.Default_Language || '';
+          const isDefaultLanguage = defaultLang === '' || defaultLang === appSettings.Default_Language;
+          
+          const templateVars = await getBaseTemplateVars(
+            isDefaultLanguage ? homepagePage.title : (homepagePage[defaultLang]?.title || homepagePage.title),
+            `itemPage page page-homepage`,
+            defaultLang
+          );
+          
+          templateVars.content = homepagePage.render(isDefaultLanguage ? '' : defaultLang);
+          await renderPage(templateVars);
+          return;
+        }
+      } catch (e) {
+        console.log('Homepage page not found, trying other options:', e);
+      }
+      
+      // Try "home" as fallback
+      try {
+        const homePage = await contentItemLoader('page', 'home');
+        if (homePage && homePage.title) {
+          const defaultLang = appSettings.Default_Language || '';
+          const isDefaultLanguage = defaultLang === '' || defaultLang === appSettings.Default_Language;
+          
+          const templateVars = await getBaseTemplateVars(
+            isDefaultLanguage ? homePage.title : (homePage[defaultLang]?.title || homePage.title),
+            `itemPage page page-home`,
+            defaultLang
+          );
+          
+          templateVars.content = homePage.render(isDefaultLanguage ? '' : defaultLang);
+          await renderPage(templateVars);
+          return;
+        }
+      } catch (e) {
+        console.log('Home page not found, trying custom pages:', e);
+      }
+    }
+    
     // Try to load custom homepage
     const customPages = await loadJSONFile('config/customPages.json', 'cms-core/config/customPages.json');
     const defaultLang = appSettings.Default_Language || '';
@@ -290,6 +348,13 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
   
   const linksPrefix = (language === '' || language === appSettings.Default_Language) ? '' : (language + '/');
   
+  // Get site theme from appSettings
+  const siteTheme = appSettings.Theme || 'default';
+  
+  // Add theme class to pageClass
+  const themeClass = `theme-${siteTheme}`;
+  const finalPageClass = `${pageClass} ${themeClass}`;
+  
   return {
     strings: strings,
     menu_main: menuHtml,
@@ -297,7 +362,8 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
     linksPrefix: linksPrefix,
     pageTitle: pageTitle,
     pageDescription: strings.SEODefaultDescription || '',
-    pageClass: pageClass,
+    pageClass: finalPageClass,
+    theme: siteTheme,
     content: ''
   };
 }

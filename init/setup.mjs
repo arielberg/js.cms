@@ -7,7 +7,8 @@ let config = {
     gitAccount: '',
     gitRepository: '',
     githubToken: '',
-    defaultLanguage: 'en'
+    defaultLanguage: 'en',
+    theme: 'default'
 };
 
 let currentStep = 1;
@@ -113,11 +114,16 @@ async function loadExistingConfig() {
                 config.gitAccount = existing.GIT_Account;
                 config.gitRepository = existing.GIT_Repository;
                 config.defaultLanguage = existing.Default_Language || 'en';
+                config.theme = existing.Theme || 'default';
                 
                 // Pre-fill forms
                 document.getElementById('gitAccount').value = config.gitAccount;
                 document.getElementById('gitRepository').value = config.gitRepository;
                 document.getElementById('defaultLanguage').value = config.defaultLanguage;
+                const themeSelect = document.getElementById('theme');
+                if (themeSelect) {
+                    themeSelect.value = config.theme;
+                }
             }
         }
     } catch (error) {
@@ -134,6 +140,10 @@ function handleRepoSubmit(event) {
     config.gitAccount = document.getElementById('gitAccount').value.trim();
     config.gitRepository = document.getElementById('gitRepository').value.trim();
     config.defaultLanguage = document.getElementById('defaultLanguage').value;
+    const themeSelect = document.getElementById('theme');
+    if (themeSelect) {
+        config.theme = themeSelect.value;
+    }
     
     if (!config.gitAccount || !config.gitRepository) {
         alert('Please fill in all fields');
@@ -279,7 +289,8 @@ async function saveConfiguration() {
         },
         "Admin_Lanaguage": config.defaultLanguage,
         "Default_Language": config.defaultLanguage,
-        "Authentication_Mode": "token"
+        "Authentication_Mode": "token",
+        "Theme": config.theme || "default"
     };
     
     // Store token in localStorage (as the CMS expects it)
@@ -447,7 +458,8 @@ function copyConfig() {
         },
         "Admin_Lanaguage": config.defaultLanguage,
         "Default_Language": config.defaultLanguage,
-        "Authentication_Mode": "token"
+        "Authentication_Mode": "token",
+        "Theme": config.theme || "default"
     };
     
     const configJson = JSON.stringify(appSettings, null, 4);
