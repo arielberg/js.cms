@@ -495,6 +495,66 @@ async function injectBlocks(templateVars, pageType, contentType) {
 }
 
 /**
+ * Fetch and convert file to base64 data URI
+ */
+async function fetchAsDataURI(filePath, basePath = '') {
+  const fullPath = basePath ? `${basePath}/${filePath}` : `/${filePath}`;
+  try {
+    const response = await fetch(fullPath);
+    if (!response.ok) {
+      console.warn(`Failed to fetch ${fullPath}: ${response.status}`);
+      return null;
+    }
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.warn(`Error fetching ${fullPath}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetch CSS file content
+ */
+async function fetchCSS(filePath, basePath = '') {
+  const fullPath = basePath ? `${basePath}/${filePath}` : `/${filePath}`;
+  try {
+    const response = await fetch(fullPath);
+    if (!response.ok) {
+      console.warn(`Failed to fetch CSS ${fullPath}: ${response.status}`);
+      return null;
+    }
+    return await response.text();
+  } catch (error) {
+    console.warn(`Error fetching CSS ${fullPath}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetch JS file content
+ */
+async function fetchJS(filePath, basePath = '') {
+  const fullPath = basePath ? `${basePath}/${filePath}` : `/${filePath}`;
+  try {
+    const response = await fetch(fullPath);
+    if (!response.ok) {
+      console.warn(`Failed to fetch JS ${fullPath}: ${response.status}`);
+      return null;
+    }
+    return await response.text();
+  } catch (error) {
+    console.warn(`Error fetching JS ${fullPath}:`, error);
+    return null;
+  }
+}
+
+/**
  * Render page using base template
  */
 async function renderPage(templateVars) {
@@ -575,83 +635,81 @@ async function renderPage(templateVars) {
     baseTemplate = baseTemplate.replace('</head>', themeStyles + '</head>');
   }
   
-  // Fix CSS and asset paths - always make them absolute from root
-  // This fixes issues on localhost with subpaths like /homepage/
-  // On localhost (no basePath), make paths absolute from root: /assets/...
-  // On GitHub Pages (with basePath), prepend basePath: /repo/assets/...
+  // Inline all assets (CSS, JS, images) to avoid path resolution issues
   const assetBasePath = basePath || '';
+  console.log('Inlining assets, basePath:', basePath);
   
-  console.log('Fixing asset paths, basePath:', basePath, 'assetBasePath:', assetBasePath);
+  // Fetch and inline CSS files
+  const cssFiles = [
+    'assets/css/style.css',
+    'assets/css/bootstrap.min.css'
+  ];
   
-  // Fix relative asset paths (assets/...) to be absolute
-  // Match: href="assets/ or src="assets/ (not already absolute or external)
-  // Use a function to ensure proper path construction
-  let replacements = 0;
-  baseTemplate = baseTemplate.replace(/href="([^"]+)"/g, (match, path) => {
-    // Skip if already absolute (starts with /) or external (starts with http)
-    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/')) {
-      return match;
+  let inlineStyles = '';
+  for (const cssFile of cssFiles) {
+    const cssContent = await fetchCSS(cssFile, assetBasePath);
+    if (cssContent) {
+      inlineStyles += `<style>${cssContent}</style>\n`;
+      console.log(`Inlined CSS: ${cssFile}`);
     }
-    // Only fix paths that start with "assets/"
-    if (path.startsWith('assets/')) {
-      // Construct absolute path: basePath + / + path
-      const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
-      replacements++;
-      console.log(`Replacing href: "${path}" -> "${absolutePath}"`);
-      return `href="${absolutePath}"`;
-    }
-    return match;
-  });
+  }
   
-  baseTemplate = baseTemplate.replace(/src="([^"]+)"/g, (match, path) => {
-    // Skip if already absolute (starts with /) or external (starts with http)
-    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/')) {
-      return match;
-    }
-    // Only fix paths that start with "assets/"
-    if (path.startsWith('assets/')) {
-      // Construct absolute path: basePath + / + path
-      const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
-      replacements++;
-      console.log(`Replacing src: "${path}" -> "${absolutePath}"`);
-      return `src="${absolutePath}"`;
-    }
-    return match;
-  });
+  // Fetch and inline JS files
+  const jsFiles = [
+    'assets/scripts/main.js'
+  ];
   
-  // Fix relative paths starting with ./
-  baseTemplate = baseTemplate.replace(/href="\.\/([^"]+)"/g, (match, path) => {
-    const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
-    replacements++;
-    console.log(`Replacing href: "./${path}" -> "${absolutePath}"`);
-    return `href="${absolutePath}"`;
-  });
-  baseTemplate = baseTemplate.replace(/src="\.\/([^"]+)"/g, (match, path) => {
-    const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
-    replacements++;
-    console.log(`Replacing src: "./${path}" -> "${absolutePath}"`);
-    return `src="${absolutePath}"`;
-  });
+  let inlineScripts = '';
+  for (const jsFile of jsFiles) {
+    const jsContent = await fetchJS(jsFile, assetBasePath);
+    if (jsContent) {
+      inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
+      console.log(`Inlined JS: ${jsFile}`);
+    }
+  }
   
-  console.log(`Total path replacements: ${replacements}`);
+  // Replace CSS link tags with inline styles
+  baseTemplate = baseTemplate.replace(/<link[^>]*href="assets\/css\/[^"]+"[^>]*>/g, '');
+  
+  // Replace JS script tags with inline scripts
+  baseTemplate = baseTemplate.replace(/<script[^>]*src="assets\/scripts\/[^"]+"[^>]*><\/script>/g, '');
+  
+  // Replace favicon with base64 data URI
+  const faviconDataURI = await fetchAsDataURI('assets/images/favicon.ico', assetBasePath);
+  if (faviconDataURI) {
+    baseTemplate = baseTemplate.replace(/<link[^>]*href="assets\/images\/favicon\.ico"[^>]*>/g, 
+      `<link rel="icon" href="${faviconDataURI}" sizes="16x16">`);
+    console.log('Inlined favicon');
+  }
+  
+  // Replace logo image with base64 data URI
+  const logoDataURI = await fetchAsDataURI('assets/images/logo.png', assetBasePath);
+  if (logoDataURI) {
+    baseTemplate = baseTemplate.replace(/src="assets\/images\/logo\.png"/g, `src="${logoDataURI}"`);
+    console.log('Inlined logo');
+  }
+  
+  // Inject inline styles before </head>
+  if (inlineStyles) {
+    baseTemplate = baseTemplate.replace('</head>', inlineStyles + '</head>');
+  }
   
   // Render template
   const html = new Function("return `" + baseTemplate + "`;").call(templateVars);
   
-  // Also fix paths in the rendered HTML as a fallback (in case template variables interfered)
-  const finalHtml = html.replace(/(href|src)="(assets\/[^"]+)"/g, (match, attr, path) => {
-    if (!path.startsWith('/') && !path.startsWith('http://') && !path.startsWith('https://')) {
-      const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
-      console.log(`Post-render fix: ${attr}="${path}" -> ${attr}="${absolutePath}"`);
-      return `${attr}="${absolutePath}"`;
-    }
-    return match;
-  });
+  // Inject inline scripts before </body>
+  let finalHtml = html;
+  if (inlineScripts) {
+    finalHtml = html.replace('</body>', inlineScripts + '</body>');
+  }
   
   // Replace document content
   document.open();
   document.write(finalHtml);
   document.close();
+  
+  // Execute any inline scripts that were added
+  // (scripts in the template will execute automatically when written to document)
 }
 
 /**
