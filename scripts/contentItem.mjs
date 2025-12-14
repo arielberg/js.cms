@@ -1,4 +1,21 @@
-import * as utils from './utils.js'; 
+import * as utils from './utils.js';
+
+/**
+ * Get base path for GitHub Pages (e.g., /test2)
+ */
+function getBasePath() {
+  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
+  if (githubPagesMatch) {
+    const repoName = githubPagesMatch[1];
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith(`/${repoName}/`)) {
+      return `/${repoName}`;
+    } else if (currentPath === `/${repoName}`) {
+      return `/${repoName}`;
+    }
+  }
+  return '';
+} 
 
 /**
  * Create a form for editing/adding content item
@@ -223,7 +240,8 @@ export function contentItem ( contentType , ItemId ) {
             .then( baseTemplate => {
               // TODO: Support multiple menus
               // Try local fetch first, then GitHub API
-              return fetch('/cms-core/menus/main.json')
+              const basePath = getBasePath();
+              return fetch(`${basePath}/cms-core/menus/main.json`)
                                 .then(response => {
                                   if (response.ok) {
                                     return response.json();

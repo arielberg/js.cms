@@ -1,5 +1,22 @@
 import * as utils from './utils.js'; 
-import { commitFiles, contentItemForm, contentList , contentItemLoader, renderMenu} from './contentItem.mjs'; 
+import { commitFiles, contentItemForm, contentList , contentItemLoader, renderMenu} from './contentItem.mjs';
+
+/**
+ * Get base path for GitHub Pages (e.g., /test2)
+ */
+function getBasePath() {
+  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
+  if (githubPagesMatch) {
+    const repoName = githubPagesMatch[1];
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith(`/${repoName}/`)) {
+      return `/${repoName}`;
+    } else if (currentPath === `/${repoName}`) {
+      return `/${repoName}`;
+    }
+  }
+  return '';
+} 
 
 
 /**
@@ -111,9 +128,10 @@ export function rederCustomPages() {
                 });
             })
             .then( pageWrapper => {
+                const basePath = getBasePath();
                 return Promise.all([
                         // Try local fetch first for menus
-                        fetch('/cms-core/menus/main.json')
+                        fetch(`${basePath}/cms-core/menus/main.json`)
                             .then(response => {
                               if (response.ok) {
                                 return response.json();
@@ -127,13 +145,13 @@ export function rederCustomPages() {
                                 .then( menu => JSON.parse(menu) );
                             }),
                         // Try local fetch first for customPages
-                        fetch('/config/customPages.json')
+                        fetch(`${basePath}/config/customPages.json`)
                             .then(response => {
                               if (response.ok) {
                                 return response.json();
                               }
                               // Try cms-core defaults
-                              return fetch('/cms-core/config/customPages.json')
+                              return fetch(`${basePath}/cms-core/config/customPages.json`)
                                 .then(response => {
                                   if (response.ok) {
                                     return response.json();
