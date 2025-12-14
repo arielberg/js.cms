@@ -179,22 +179,25 @@ async function loadModuleTemplates(modulePath) {
  */
 async function getModuleRegistry() {
   try {
-    // Calculate path based on current location
-    const currentPath = window.location.pathname;
-    let basePath = '';
-    
-    // Determine base path from current URL
-    if (currentPath.includes('/cms-core/')) {
-      basePath = '/cms-core';
-    } else if (currentPath.includes('/admin/')) {
-      basePath = currentPath.substring(0, currentPath.indexOf('/admin'));
-    } else {
-      basePath = '/cms-core';
-    }
+    // Get base path for GitHub Pages (e.g., /test2)
+    const githubPagesBasePath = (() => {
+      const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
+      if (githubPagesMatch) {
+        const repoName = githubPagesMatch[1];
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith(`/${repoName}/`)) {
+          return `/${repoName}`;
+        } else if (currentPath === `/${repoName}`) {
+          return `/${repoName}`;
+        }
+      }
+      return '';
+    })();
     
     // Try multiple paths
     const paths = [
-      `${basePath}/config/modules.json`,
+      `${githubPagesBasePath}/config/modules.json`,
+      `${githubPagesBasePath}/cms-core/config/modules.json`,
       '/cms-core/config/modules.json',
       '../config/modules.json',
       '../../config/modules.json'
@@ -202,6 +205,7 @@ async function getModuleRegistry() {
     
     for (const path of paths) {
       try {
+        // Paths already include basePath if needed, so use as-is
         const response = await fetch(path);
         if (response.ok) {
           return await response.json();

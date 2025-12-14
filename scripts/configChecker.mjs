@@ -4,28 +4,47 @@
  */
 
 /**
+ * Get base path for GitHub Pages (e.g., /test2)
+ */
+function getBasePath() {
+  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
+  if (githubPagesMatch) {
+    const repoName = githubPagesMatch[1];
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith(`/${repoName}/`)) {
+      return `/${repoName}`;
+    } else if (currentPath === `/${repoName}`) {
+      return `/${repoName}`;
+    }
+  }
+  return '';
+}
+
+/**
  * Check if appSettings is properly configured
  */
 export async function checkConfiguration() {
   try {
+    const basePath = getBasePath();
+    
     // Check site config first (takes precedence), then fall back to cms-core defaults
     // Try site config at root level
-    let response = await fetch('/config/appSettings.json');
+    let response = await fetch(`${basePath}/config/appSettings.json`);
     if (!response.ok) {
       // Try relative path from cms-core
-      response = await fetch('../../config/appSettings.json');
+      response = await fetch(`${basePath}/../../config/appSettings.json`);
     }
     if (!response.ok) {
       // Try another relative path
-      response = await fetch('../config/appSettings.json');
+      response = await fetch(`${basePath}/../config/appSettings.json`);
     }
     if (!response.ok) {
       // Fall back to cms-core defaults
-      response = await fetch('/cms-core/config/appSettings.json');
+      response = await fetch(`${basePath}/cms-core/config/appSettings.json`);
     }
     if (!response.ok) {
       // Try relative path to cms-core config
-      response = await fetch('../config/appSettings.json');
+      response = await fetch(`${basePath}/../config/appSettings.json`);
     }
     if (!response.ok) {
       return { configured: false, reason: 'appSettings.json not found' };

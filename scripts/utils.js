@@ -53,6 +53,21 @@ export let loadSystemFile = function( variableName , filePath, onSuccess ) {
     // Extract filename from path (e.g., "appSettings.json" from "../config/appSettings.json")
     const fileName = filePath.split('/').pop();
     
+    // Get base path for GitHub Pages
+    const basePath = (() => {
+      const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
+      if (githubPagesMatch) {
+        const repoName = githubPagesMatch[1];
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith(`/${repoName}/`)) {
+          return `/${repoName}`;
+        } else if (currentPath === `/${repoName}`) {
+          return `/${repoName}`;
+        }
+      }
+      return '';
+    })();
+    
     // Try site config first (root level), then fall back to provided path (cms-core defaults)
     const pathsToTry = [
       `/config/${fileName}`,           // Site config at root
@@ -70,8 +85,13 @@ export let loadSystemFile = function( variableName , filePath, onSuccess ) {
         return;
       }
       
-      const currentPath = pathsToTry[currentPathIndex];
+      let currentPath = pathsToTry[currentPathIndex];
       currentPathIndex++;
+      
+      // Prepend base path to absolute paths, keep relative paths as-is
+      if (currentPath.startsWith('/')) {
+        currentPath = `${basePath}${currentPath}`;
+      }
       
       // Add cache-busting for contentTypes to ensure fresh data
       const fetchPath = skipCache ? currentPath + '?t=' + Date.now() : currentPath;
