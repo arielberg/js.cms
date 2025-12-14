@@ -17,14 +17,28 @@ export async function initFrontend() {
     // Load configuration files
     await loadConfiguration();
     
-    // Get current path
-    const path = window.location.pathname;
+    // Get current path (remove base path for GitHub Pages if needed)
+    let path = window.location.pathname;
+    
+    // Handle GitHub Pages paths (e.g., /test2/ should become /)
+    // Remove repository name from path if it's a GitHub Pages URL
+    const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
+    if (githubPagesMatch) {
+      const repoName = githubPagesMatch[1];
+      if (path.startsWith(`/${repoName}/`)) {
+        path = path.replace(`/${repoName}`, '');
+      } else if (path === `/${repoName}`) {
+        path = '/';
+      }
+    }
     
     // Route to appropriate handler
     await route(path);
   } catch (error) {
     console.error('Frontend initialization error:', error);
-    showError('Failed to initialize site. Please check configuration.');
+    console.error('Error stack:', error.stack);
+    // Show a more helpful error message
+    showError(`Failed to initialize site: ${error.message || 'Unknown error'}. Please check the browser console for details.`);
   }
 }
 
@@ -76,25 +90,47 @@ async function loadConfiguration() {
 }
 
 /**
+ * Get base path for GitHub Pages
+ */
+function getBasePath() {
+  // Handle GitHub Pages paths (e.g., /test2/)
+  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
+  if (githubPagesMatch) {
+    const repoName = githubPagesMatch[1];
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith(`/${repoName}/`)) {
+      return `/${repoName}`;
+    } else if (currentPath === `/${repoName}`) {
+      return `/${repoName}`;
+    }
+  }
+  return '';
+}
+
+/**
  * Load JSON file with fallback
  */
 async function loadJSONFile(primaryPath, fallbackPath) {
+  const basePath = getBasePath();
+  const primaryFullPath = basePath ? `${basePath}/${primaryPath}` : primaryPath;
+  const fallbackFullPath = basePath ? `${basePath}/${fallbackPath}` : fallbackPath;
+  
   try {
-    const response = await fetch(primaryPath);
+    const response = await fetch(primaryFullPath);
     if (response.ok) {
       return await response.json();
     }
   } catch (e) {
-    console.log(`Failed to load ${primaryPath}, trying fallback`);
+    console.log(`Failed to load ${primaryFullPath}, trying fallback`);
   }
   
   try {
-    const response = await fetch(fallbackPath);
+    const response = await fetch(fallbackFullPath);
     if (response.ok) {
       return await response.json();
     }
   } catch (e) {
-    console.warn(`Failed to load ${fallbackPath}`);
+    console.warn(`Failed to load ${fallbackFullPath}`);
   }
   
   // Return empty defaults
@@ -302,7 +338,11 @@ async function renderCustomPage(path) {
 async function renderCustomPageTemplate(pageData, language) {
   try {
     // Load template
-    const templatePath = `cms-core/admin/templates/customPages/${pageData.template}`;
+    const basePath = getBasePath();
+    const templatePath = basePath 
+      ? `${basePath}/cms-core/admin/templates/customPages/${pageData.template}`
+      : `cms-core/admin/templates/customPages/${pageData.template}`;
+    const apiTemplatePath = `cms-core/admin/templates/customPages/${pageData.template}`;
     let template = '';
     
     try {
@@ -312,7 +352,7 @@ async function renderCustomPageTemplate(pageData, language) {
       } else if (gitApi && gitApi.getFile) {
         // Try GitHub API
         try {
-          template = await gitApi.getFile(templatePath);
+          template = await gitApi.getFile(apiTemplatePath);
         } catch (apiError) {
           console.warn('GitHub API fetch failed:', apiError);
         }
@@ -321,7 +361,7 @@ async function renderCustomPageTemplate(pageData, language) {
       console.error('Failed to load template:', e);
       if (gitApi && gitApi.getFile) {
         try {
-          template = await gitApi.getFile(templatePath);
+          template = await gitApi.getFile(apiTemplatePath);
         } catch (apiError) {
           console.warn('GitHub API fetch also failed:', apiError);
         }
@@ -457,9 +497,12 @@ async function injectBlocks(templateVars, pageType, contentType) {
  */
 async function renderPage(templateVars) {
   // Load base template
+  const basePath = getBasePath();
+  const templatePath = basePath ? `${basePath}/cms-core/admin/templates/base.html` : 'cms-core/admin/templates/base.html';
+  
   let baseTemplate = '';
   try {
-    const response = await fetch('cms-core/admin/templates/base.html');
+    const response = await fetch(templatePath);
     if (response.ok) {
       baseTemplate = await response.text();
     } else if (gitApi && gitApi.getFile) {

@@ -1,57 +1,20 @@
-<!DOCTYPE HTML>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" type="text/css" href="assets/css/style.css">
-        <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" media="all">        
-        <script type="text/javascript" src="assets/scripts/main.js"></script>       
-        <link rel="icon" href="assets/images/favicon.ico" sizes="16x16">
-        <title>Js-CMS - Welcome to JS-CMS</title>
-    </head>
-<body class="frontPage">
-  <nav class="navbar navbar-expand-md fixed-top">
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>  
-    <div class="inner">
-      <a class="navbar-brand" href=""><img width="120px" src="assets/images/logo.png" /></a>
-      <div class="collapse navbar-collapse" id="mainMenu">        
-        <ul class='navbar-nav'>
-                                <li><a href="">Home</a></li><li><a href="about-us">About Us</a></li><li><a href="posts">Posts</a></li>
-                                </ul>
-      </div>
-      <form class="form-inline my-2 my-lg-0">
-        <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-      </form>
-    </div>
-  </nav>
-
-    <main id='main' role="main" class="container">
-      <div class="starter-template">
-        <h1>Welcome to JS-CMS</h1>          
-          This is front page
-
-      </div>
-    </main>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Redirecting to Admin Panel...</title>
     <script>
-      // fix for github pages:
-      let matchGitHubPages = window.location.href.match(/(.*)github.io\/([^/]*)/);
-      if ( matchGitHubPages ) {
-        document.querySelectorAll('[href]').forEach(s=>{
-          if( s.href ) { 
-            s.href = s.href.replace( ( location.origin + location.pathname), matchGitHubPages[0]+'/');
-            console.log(s.href); 
-          }
-        });
-
-        document.querySelectorAll('[src]').forEach( s => {
-          if( s.src ) { 
-            s.src = s.src.replace( ( location.origin + location.pathname), matchGitHubPages[0] + '/' );
-          }
-        });
-      }
+        // Redirect to admin panel
+        // Handle both root paths and GitHub Pages paths
+        const currentPath = window.location.pathname;
+        const basePath = currentPath.split('/cms-core')[0] || '';
+        const adminPath = basePath + '/cms-core/admin/index.html';
+        window.location.replace(adminPath);
     </script>
+</head>
+<body>
+    <p>Redirecting to admin panel...</p>
+    <p>If you are not redirected, <a href="admin/index.html">click here</a>.</p>
 </body>
 </html>
