@@ -35,7 +35,7 @@ async function loadModule(moduleName) {
   const currentPath = window.location.pathname;
   let basePath = '/cms-core';
   
-  if (currentPath.includes('/cms-core/admin/')) {
+  if (currentPath.includes('/cms-core/')) {
     basePath = '/cms-core';
   } else if (currentPath.includes('/admin/')) {
     basePath = currentPath.substring(0, currentPath.indexOf('/admin'));
@@ -184,7 +184,7 @@ async function getModuleRegistry() {
     let basePath = '';
     
     // Determine base path from current URL
-    if (currentPath.includes('/cms-core/admin/')) {
+    if (currentPath.includes('/cms-core/')) {
       basePath = '/cms-core';
     } else if (currentPath.includes('/admin/')) {
       basePath = currentPath.substring(0, currentPath.indexOf('/admin'));

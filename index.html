@@ -1,20 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Redirecting to Admin Panel...</title>
-    <script>
-        // Redirect to admin panel
-        // Handle both root paths and GitHub Pages paths
-        const currentPath = window.location.pathname;
-        const basePath = currentPath.split('/cms-core')[0] || '';
-        const adminPath = basePath + '/cms-core/admin/index.html';
-        window.location.replace(adminPath);
-    </script>
-</head>
-<body>
-    <p>Redirecting to admin panel...</p>
-    <p>If you are not redirected, <a href="admin/index.html">click here</a>.</p>
+    <title>CMS Builder - Admin Panel</title>
+    
+    <link rel="stylesheet" href="style.css" ></link>
+    <link rel="stylesheet" href="contentTypeManager.css" ></link>
+
+    <script src="scripts/script.mjs" type="module"></script>
+
+    <!-- TODO load followings as modules: -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" ></link>
+    <script src="scripts/ocktocat.js" type="text/javascript"></script>
+    <link href="scripts/suneditor/css/suneditor.min.css" rel="stylesheet">
+    <script src="scripts/suneditor/suneditor.min.js" type="module"></script>
+    
+</head> 
+<body class="">
+  <div id='spinner'></div>
+  <div id="pageWrapper" class="wrapper hideLeftBar">
+   <!-- Sidebar -->
+   <nav id="sidebar">
+    <div class="sidebar-header">
+        <h2 data-stringId='siteName' ></h2>
+    </div>
+
+    <ul id='sidebarLinks' class="list-unstyled components">
+      <li>
+        <a data-stringId='contentTypes' class="nav-link" href="#content-types">Content Types</a>
+      </li>
+      <li>
+        <hr/>
+      </li>
+      <li>
+        <a data-stringId='menus' class="nav-link" href="#menus">Menus</a>
+      </li>
+      <li>
+        <a data-stringId='blocks' class="nav-link" href="#blocks">Blocks</a>
+      </li>
+      <li>
+        <a data-stringId='theme' class="nav-link" href="#theme">Theme</a>
+      </li>
+      <li>
+        <a data-stringId='translate' class="nav-link" href="#translate">Translation Interface</a>
+      </li>
+      <li>
+        <a data-stringId='rerender' class="nav-link" href="#rerender">Rebuild</a>
+      </li>
+      <li>
+        <hr/>
+      </li>
+      <li>
+        <a data-stringId='logout' class="nav-link" href="#logout">Logout</a>
+      </li>
+    </ul>
+  </nav>
+  <!-- Page Content -->
+  <div id="mainArea">
+    <div id='messages'>
+    </div>
+    <div id="content">
+      <div id="loadingMessage">
+        <p>Loading Data.... Please wait</p>
+        <p class="text-muted" style="font-size: 0.9em; margin-top: 10px;">
+          If this is your first time, you'll be redirected to the setup wizard.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

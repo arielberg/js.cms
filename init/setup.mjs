@@ -62,7 +62,7 @@ async function checkIfAlreadyConfigured() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('reconfigure') !== 'true') {
                 // Already configured, redirect to admin
-                const returnPath = sessionStorage.getItem('returnAfterSetup') || '../admin/index.html';
+                const returnPath = sessionStorage.getItem('returnAfterSetup') || '../index.html';
                 sessionStorage.removeItem('returnAfterSetup');
                 sessionStorage.setItem('setupJustCompleted', 'true'); // Mark as just completed to bypass check
                 

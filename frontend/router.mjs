@@ -1,6 +1,6 @@
-import * as utils from '../admin/scripts/utils.js';
-import { contentItemLoader } from '../admin/scripts/contentItem.mjs';
-import { renderMenu } from '../admin/scripts/contentItem.mjs';
+import * as utils from '../scripts/utils.js';
+import { contentItemLoader } from '../scripts/contentItem.mjs';
+import { renderMenu } from '../scripts/contentItem.mjs';
 import { getFixedContentTypes } from '../core/fixedContentTypes.mjs';
 
 /**
@@ -77,7 +77,7 @@ async function loadConfiguration() {
     try {
       const secretData = JSON.parse(secret);
       if (secretData.token) {
-        const GitHubAPI = await import('../admin/scripts/api/GitHubAPI.mjs');
+        const GitHubAPI = await import('../scripts/api/GitHubAPI.mjs');
         gitApi = {
           getFile: GitHubAPI.getFile
         };
@@ -270,7 +270,7 @@ async function renderDefaultHomepage(language) {
         <li>Create a page with ID "homepage" or "home"</li>
         <li>Add your content</li>
       </ol>
-      <p><a href="cms-core/admin/index.html" class="btn btn-primary">Go to Admin Panel</a></p>
+      <p><a href="cms-core/index.html" class="btn btn-primary">Go to Admin Panel</a></p>
     </div>
   `;
   
@@ -340,9 +340,9 @@ async function renderCustomPageTemplate(pageData, language) {
     // Load template
     const basePath = getBasePath();
     const templatePath = basePath 
-      ? `${basePath}/cms-core/admin/templates/customPages/${pageData.template}`
-      : `cms-core/admin/templates/customPages/${pageData.template}`;
-    const apiTemplatePath = `cms-core/admin/templates/customPages/${pageData.template}`;
+      ? `${basePath}/cms-core/templates/customPages/${pageData.template}`
+      : `cms-core/templates/customPages/${pageData.template}`;
+    const apiTemplatePath = `cms-core/templates/customPages/${pageData.template}`;
     let template = '';
     
     try {
@@ -398,7 +398,7 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
   // Load menu
   let menu = {};
   try {
-    const menuData = await loadJSONFile('cms-core/admin/menus/main.json', 'cms-core/admin/menus/main.json');
+    const menuData = await loadJSONFile('cms-core/menus/main.json', 'cms-core/menus/main.json');
     menu = menuData[language] || menuData[''] || [];
   } catch (e) {
     console.warn('Could not load menu:', e);
@@ -560,7 +560,7 @@ async function fetchJS(filePath, basePath = '') {
 async function renderPage(templateVars) {
   // Load base template
   const basePath = getBasePath();
-  const templatePath = basePath ? `${basePath}/cms-core/admin/templates/base.html` : 'cms-core/admin/templates/base.html';
+  const templatePath = basePath ? `${basePath}/cms-core/templates/base.html` : 'cms-core/templates/base.html';
   
   let baseTemplate = '';
   try {
@@ -569,7 +569,7 @@ async function renderPage(templateVars) {
       baseTemplate = await response.text();
     } else if (gitApi && gitApi.getFile) {
       try {
-        baseTemplate = await gitApi.getFile('cms-core/admin/templates/base.html');
+        baseTemplate = await gitApi.getFile('cms-core/templates/base.html');
       } catch (apiError) {
         console.error('GitHub API fetch failed:', apiError);
       }
@@ -578,7 +578,7 @@ async function renderPage(templateVars) {
     console.error('Failed to load base template:', e);
     if (gitApi && gitApi.getFile) {
       try {
-        baseTemplate = await gitApi.getFile('cms-core/admin/templates/base.html');
+        baseTemplate = await gitApi.getFile('cms-core/templates/base.html');
       } catch (apiError) {
         console.error('GitHub API fetch also failed:', apiError);
         showError('Failed to load page template');

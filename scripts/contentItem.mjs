@@ -214,7 +214,7 @@ export function contentItem ( contentType , ItemId ) {
               // Log the error for debugging
               console.log('Local template fetch failed, trying GitHub API:', error.message);
               // Fallback to GitHub API
-              return APIconnect.getFile('cms-core/admin/templates/base.html')
+              return APIconnect.getFile('cms-core/templates/base.html')
                 .catch(apiError => {
                   console.error('Both local and GitHub API fetch failed:', apiError);
                   throw new Error('Failed to load base template from both local server and GitHub API');
@@ -223,18 +223,18 @@ export function contentItem ( contentType , ItemId ) {
             .then( baseTemplate => {
               // TODO: Support multiple menus
               // Try local fetch first, then GitHub API
-              return fetch('/cms-core/admin/menus/main.json')
+              return fetch('/cms-core/menus/main.json')
                                 .then(response => {
                                   if (response.ok) {
                                     return response.json();
                                   }
                                   // Fall back to GitHub API (remove leading slash)
-                                  return APIconnect.getFile('cms-core/admin/menus/main.json')
+                                  return APIconnect.getFile('cms-core/menus/main.json')
                                     .then( menu => JSON.parse(menu) );
                                 })
                                 .catch(() => {
                                   // Final fallback to GitHub API
-                                  return APIconnect.getFile('cms-core/admin/menus/main.json')
+                                  return APIconnect.getFile('cms-core/menus/main.json')
                                     .then( menu => JSON.parse(menu) );
                                 })
                                 .then( jsonMenu => {

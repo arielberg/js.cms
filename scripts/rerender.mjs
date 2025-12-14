@@ -104,7 +104,7 @@ export function rederCustomPages() {
               console.log('Local template fetch failed, trying GitHub API:', error.message);
               // Fallback to GitHub API
               const APIconnect = utils.getGlobalVariable('gitApi');
-              return APIconnect.getFile('cms-core/admin/templates/base.html')
+              return APIconnect.getFile('cms-core/templates/base.html')
                 .catch(apiError => {
                   console.error('Both local and GitHub API fetch failed:', apiError);
                   throw new Error('Failed to load base template from both local server and GitHub API');
@@ -113,17 +113,17 @@ export function rederCustomPages() {
             .then( pageWrapper => {
                 return Promise.all([
                         // Try local fetch first for menus
-                        fetch('/cms-core/admin/menus/main.json')
+                        fetch('/cms-core/menus/main.json')
                             .then(response => {
                               if (response.ok) {
                                 return response.json();
                               }
                               // Fall back to GitHub API (remove leading slash)
-                              return APIconnect.getFile('cms-core/admin/menus/main.json')
+                              return APIconnect.getFile('cms-core/menus/main.json')
                                 .then( menu => JSON.parse(menu) );
                             })
                             .catch(() => {
-                              return APIconnect.getFile('cms-core/admin/menus/main.json')
+                              return APIconnect.getFile('cms-core/menus/main.json')
                                 .then( menu => JSON.parse(menu) );
                             }),
                         // Try local fetch first for customPages
