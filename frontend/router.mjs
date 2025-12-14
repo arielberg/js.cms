@@ -647,10 +647,17 @@ async function renderPage(templateVars) {
   
   let inlineStyles = '';
   for (const cssFile of cssFiles) {
-    const cssContent = await fetchCSS(cssFile, assetBasePath);
-    if (cssContent) {
-      inlineStyles += `<style>${cssContent}</style>\n`;
-      console.log(`Inlined CSS: ${cssFile}`);
+    try {
+      const cssContent = await fetchCSS(cssFile, assetBasePath);
+      if (cssContent) {
+        inlineStyles += `<style>${cssContent}</style>\n`;
+        console.log(`Inlined CSS: ${cssFile}`);
+      } else {
+        console.warn(`Failed to load CSS: ${cssFile}, continuing without it`);
+      }
+    } catch (error) {
+      console.warn(`Error loading CSS ${cssFile}:`, error);
+      // Continue without this CSS file
     }
   }
   
@@ -661,10 +668,17 @@ async function renderPage(templateVars) {
   
   let inlineScripts = '';
   for (const jsFile of jsFiles) {
-    const jsContent = await fetchJS(jsFile, assetBasePath);
-    if (jsContent) {
-      inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
-      console.log(`Inlined JS: ${jsFile}`);
+    try {
+      const jsContent = await fetchJS(jsFile, assetBasePath);
+      if (jsContent) {
+        inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
+        console.log(`Inlined JS: ${jsFile}`);
+      } else {
+        console.warn(`Failed to load JS: ${jsFile}, continuing without it`);
+      }
+    } catch (error) {
+      console.warn(`Error loading JS ${jsFile}:`, error);
+      // Continue without this JS file
     }
   }
   
@@ -675,18 +689,26 @@ async function renderPage(templateVars) {
   baseTemplate = baseTemplate.replace(/<script[^>]*src="assets\/scripts\/[^"]+"[^>]*><\/script>/g, '');
   
   // Replace favicon with base64 data URI
-  const faviconDataURI = await fetchAsDataURI('assets/images/favicon.ico', assetBasePath);
-  if (faviconDataURI) {
-    baseTemplate = baseTemplate.replace(/<link[^>]*href="assets\/images\/favicon\.ico"[^>]*>/g, 
-      `<link rel="icon" href="${faviconDataURI}" sizes="16x16">`);
-    console.log('Inlined favicon');
+  try {
+    const faviconDataURI = await fetchAsDataURI('assets/images/favicon.ico', assetBasePath);
+    if (faviconDataURI) {
+      baseTemplate = baseTemplate.replace(/<link[^>]*href="assets\/images\/favicon\.ico"[^>]*>/g, 
+        `<link rel="icon" href="${faviconDataURI}" sizes="16x16">`);
+      console.log('Inlined favicon');
+    }
+  } catch (error) {
+    console.warn('Error loading favicon:', error);
   }
   
   // Replace logo image with base64 data URI
-  const logoDataURI = await fetchAsDataURI('assets/images/logo.png', assetBasePath);
-  if (logoDataURI) {
-    baseTemplate = baseTemplate.replace(/src="assets\/images\/logo\.png"/g, `src="${logoDataURI}"`);
-    console.log('Inlined logo');
+  try {
+    const logoDataURI = await fetchAsDataURI('assets/images/logo.png', assetBasePath);
+    if (logoDataURI) {
+      baseTemplate = baseTemplate.replace(/src="assets\/images\/logo\.png"/g, `src="${logoDataURI}"`);
+      console.log('Inlined logo');
+    }
+  } catch (error) {
+    console.warn('Error loading logo:', error);
   }
   
   // Inject inline styles before </head>
