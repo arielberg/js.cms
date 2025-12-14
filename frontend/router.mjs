@@ -575,20 +575,52 @@ async function renderPage(templateVars) {
     baseTemplate = baseTemplate.replace('</head>', themeStyles + '</head>');
   }
   
-  // Fix CSS and asset paths - always make them absolute
+  // Fix CSS and asset paths - always make them absolute from root
   // This fixes issues on localhost with subpaths like /homepage/
   // On localhost (no basePath), make paths absolute from root: /assets/...
   // On GitHub Pages (with basePath), prepend basePath: /repo/assets/...
   const assetBasePath = basePath || '';
   
   // Fix relative asset paths (assets/...) to be absolute
-  // Simple replacement: href="assets/ -> href="/assets/ or href="/repo/assets/
-  baseTemplate = baseTemplate.replace(/href="assets\//g, `href="${assetBasePath}/assets/`);
-  baseTemplate = baseTemplate.replace(/src="assets\//g, `src="${assetBasePath}/assets/`);
+  // Match: href="assets/ or src="assets/ (not already absolute or external)
+  // Use a function to ensure proper path construction
+  baseTemplate = baseTemplate.replace(/href="([^"]+)"/g, (match, path) => {
+    // Skip if already absolute (starts with /) or external (starts with http)
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/')) {
+      return match;
+    }
+    // Only fix paths that start with "assets/"
+    if (path.startsWith('assets/')) {
+      // Construct absolute path: basePath + / + path
+      const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
+      return `href="${absolutePath}"`;
+    }
+    return match;
+  });
+  
+  baseTemplate = baseTemplate.replace(/src="([^"]+)"/g, (match, path) => {
+    // Skip if already absolute (starts with /) or external (starts with http)
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/')) {
+      return match;
+    }
+    // Only fix paths that start with "assets/"
+    if (path.startsWith('assets/')) {
+      // Construct absolute path: basePath + / + path
+      const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
+      return `src="${absolutePath}"`;
+    }
+    return match;
+  });
   
   // Fix relative paths starting with ./
-  baseTemplate = baseTemplate.replace(/href="\.\//g, `href="${assetBasePath}/`);
-  baseTemplate = baseTemplate.replace(/src="\.\//g, `src="${assetBasePath}/`);
+  baseTemplate = baseTemplate.replace(/href="\.\/([^"]+)"/g, (match, path) => {
+    const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
+    return `href="${absolutePath}"`;
+  });
+  baseTemplate = baseTemplate.replace(/src="\.\/([^"]+)"/g, (match, path) => {
+    const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
+    return `src="${absolutePath}"`;
+  });
   
   // Render template
   const html = new Function("return `" + baseTemplate + "`;").call(templateVars);

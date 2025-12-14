@@ -46,30 +46,19 @@
   </footer>
    
     <script type="text/javascript">
-
-      /// fix for github pages:
-      let devPatterns = [/(.*)github.io\\/([^/]*)/ ];
-      devPatterns.forEach(function(devPattern){
-          let matchGitHubPages = window.location.href.match(devPattern);
-          if ( matchGitHubPages ) {
-              document.querySelectorAll('[href]').forEach(s=>{
-                  if( s.href ) { 
-                      s.href = s.href.replace( location.origin , matchGitHubPages[0] );
-                  }
-              });
+      // Path fixing is now handled by the router, so this script is disabled
+      // to prevent double-fixing of paths
       
-              document.querySelectorAll('[src]').forEach( s => {
-                  if( s.src ) { 
-                      s.src = s.src.replace( location.origin , matchGitHubPages[0] );
-                  }
-              });
+      // Only handle mobile menu toggle if element exists
+      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+      if (mobileMenuToggle) {
+        mobileMenuToggle.onclick = btn => {
+          const mainMenu = document.getElementById('mainMenu');
+          if (mainMenu) {
+            mainMenu.classList.toggle("open");
           }
-      });
-
-      document.getElementById('mobileMenuToggle').onclick = btn => {
-          document.getElementById('mainMenu').classList.toggle("open");
+        };
       }
-    
   </script>
 </body>
 </html>
