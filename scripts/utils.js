@@ -56,7 +56,7 @@ export let loadSystemFile = function( variableName , filePath, onSuccess ) {
     // Try site config first (root level), then fall back to provided path (cms-core defaults)
     const pathsToTry = [
       `/config/${fileName}`,           // Site config at root
-      `../../config/${fileName}`,      // Site config relative from admin
+      `../../config/${fileName}`,      // Site config relative from cms-core
       `../config/${fileName}`,         // Site config relative
       filePath                         // Original path (cms-core defaults)
     ];

@@ -89,7 +89,7 @@ export function rederCustomPages() {
     
     let languages = appSettings.Lanugages;
     
-    // Use relative path (relative to admin/ directory where index.html is)
+    // Use relative path (relative to cms-core/ directory where index.html is)
     let wrapperPath = 'templates/base.html';
    
     return fetch( wrapperPath )

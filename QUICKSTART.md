@@ -49,7 +49,7 @@
    - Generate and **copy the token** (you won't see it again!)
 
 4. **Access Admin Panel**
-   - Open `/cms-core/admin/index.html` in your browser
+   - Open `/cms-core/index.html` in your browser
 
 5. **Login**
    - Enter your GitHub username in "Name" field

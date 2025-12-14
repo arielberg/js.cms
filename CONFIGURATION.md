@@ -60,7 +60,7 @@ Edit `cms-core/config/appSettings.json` with your GitHub repository details:
 ### Step 2: Use the Token in CMS
 
 1. **Open Admin Panel**
-   - Navigate to `/cms-core/admin/index.html`
+   - Navigate to `/cms-core/index.html`
 
 2. **Login Form**
    - The form will appear asking for:
@@ -217,7 +217,7 @@ After configuration:
 
 1. ✅ Save `appSettings.json`
 2. ✅ Create GitHub Personal Access Token
-3. ✅ Open `/cms-core/admin/index.html`
+3. ✅ Open `/cms-core/index.html`
 4. ✅ Login with username and token
 5. ✅ Start creating content!
 

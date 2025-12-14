@@ -6,7 +6,7 @@ import * as main from './script.mjs';
  * Build Menu to be used in the html
  */
 export function menuBuilder( parentComponent ) {
-    parentComponent.innerHTML = 'TODO: Build menu editor.<br/>currently, please set menus using json files (admin/menus)';
+    parentComponent.innerHTML = 'TODO: Build menu editor.<br/>currently, please set menus using json files (cms-core/menus)';
     return;
     parentComponent.innerHTML = `<div id='menuEditor'>
                                     <ul>

@@ -202,7 +202,7 @@ export function contentItem ( contentType , ItemId ) {
     let APIconnect = utils.getGlobalVariable('gitApi');
  
     // Try local fetch first, then fallback to GitHub API
-    // Use relative path (relative to admin/ directory where index.html is)
+    // Use relative path (relative to cms-core/ directory where index.html is)
     return fetch('templates/base.html')
             .then(result => {
               if (result.ok) {

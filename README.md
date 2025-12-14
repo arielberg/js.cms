@@ -114,7 +114,7 @@ Legacy content types (modules are preferred).
    - The wizard will test your GitHub token and save configuration
 
 2. **Access Admin Panel**
-   - After setup, go to `/cms-core/admin/index.html`
+   - After setup, go to `/cms-core/index.html`
    - Start creating content!
 
 ### Option 2: Manual Configuration
@@ -123,7 +123,7 @@ Legacy content types (modules are preferred).
    - See `CONFIGURATION.md` for detailed setup instructions
    - You'll need a GitHub Personal Access Token with `repo` scope
 2. **Enable modules** in `config/modules.json`
-3. **Access admin panel** at `/cms-core/admin/index.html`
+3. **Access admin panel** at `/cms-core/index.html`
 4. **Login** with your GitHub username and Personal Access Token
 5. **Create content** using the admin interface
 6. Content is stored in GitHub and rendered as static HTML

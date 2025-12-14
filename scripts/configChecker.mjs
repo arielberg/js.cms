@@ -12,7 +12,7 @@ export async function checkConfiguration() {
     // Try site config at root level
     let response = await fetch('/config/appSettings.json');
     if (!response.ok) {
-      // Try relative path from admin
+      // Try relative path from cms-core
       response = await fetch('../../config/appSettings.json');
     }
     if (!response.ok) {
