@@ -165,6 +165,10 @@ async function renderHomepage() {
           );
           
           templateVars.content = homepagePage.render(isDefaultLanguage ? '' : defaultLang);
+          
+          // Load and inject blocks
+          await injectBlocks(templateVars, 'homepage', 'page');
+          
           await renderPage(templateVars);
           return;
         }
@@ -186,6 +190,10 @@ async function renderHomepage() {
           );
           
           templateVars.content = homePage.render(isDefaultLanguage ? '' : defaultLang);
+          
+          // Load and inject blocks
+          await injectBlocks(templateVars, 'homepage', 'page');
+          
           await renderPage(templateVars);
           return;
         }
@@ -203,7 +211,7 @@ async function renderHomepage() {
     if (homepage) {
       await renderCustomPageTemplate(homepage, defaultLang);
     } else {
-      // Default homepage
+      // Default homepage - show welcome message
       await renderDefaultHomepage(defaultLang);
     }
   } catch (error) {
@@ -217,7 +225,22 @@ async function renderHomepage() {
  */
 async function renderDefaultHomepage(language) {
   const templateVars = await getBaseTemplateVars('Homepage', 'homepage', language);
-  templateVars.content = '<p>Welcome to your CMS site. Add content to get started!</p>';
+  templateVars.content = `
+    <div class="homepage-welcome">
+      <h2>Welcome to Your CMS Site</h2>
+      <p>This is your homepage. To customize it:</p>
+      <ol>
+        <li>Go to the admin panel</li>
+        <li>Create a page with ID "homepage" or "home"</li>
+        <li>Add your content</li>
+      </ol>
+      <p><a href="cms-core/admin/index.html" class="btn btn-primary">Go to Admin Panel</a></p>
+    </div>
+  `;
+  
+  // Load and inject blocks for homepage
+  await injectBlocks(templateVars, 'homepage', null);
+  
   await renderPage(templateVars);
 }
 
@@ -318,6 +341,9 @@ async function renderCustomPageTemplate(pageData, language) {
       templateVars.content = '<p>Template not found</p>';
     }
     
+    // Load and inject blocks
+    await injectBlocks(templateVars, 'homepage', null);
+    
     await renderPage(templateVars);
   } catch (error) {
     console.error('Error rendering custom page template:', error);
@@ -366,6 +392,62 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
     theme: siteTheme,
     content: ''
   };
+}
+
+/**
+ * Load and inject blocks into template variables
+ */
+async function injectBlocks(templateVars, pageType, contentType) {
+  try {
+    const blocks = await loadJSONFile('config/blocks.json', 'cms-core/config/blocks.json');
+    if (!Array.isArray(blocks)) return;
+    
+    // Filter blocks by visibility
+    const visibleBlocks = blocks.filter(block => {
+      // Check visibility
+      if (block.visibility === 'none') return false;
+      if (block.visibility === 'homepage' && pageType !== 'homepage') return false;
+      if (block.visibility === 'list' && pageType !== 'list') return false;
+      if (block.visibility === 'single' && pageType !== 'single') return false;
+      if (block.visibility === 'all') return true;
+      
+      // Check content type filter
+      if (block.contentTypes && contentType) {
+        const allowedTypes = block.contentTypes.split(',').map(t => t.trim());
+        return allowedTypes.includes(contentType);
+      }
+      
+      return true;
+    });
+    
+    // Group blocks by region
+    const blocksByRegion = {};
+    visibleBlocks.forEach(block => {
+      const region = block.region || 'content';
+      if (!blocksByRegion[region]) {
+        blocksByRegion[region] = [];
+      }
+      blocksByRegion[region].push(block);
+    });
+    
+    // Add blocks to template vars
+    templateVars.blocks = blocksByRegion;
+    templateVars.blocks_header = (blocksByRegion.header || []).map(b => b.content).join('');
+    templateVars.blocks_footer = (blocksByRegion.footer || []).map(b => b.content).join('');
+    templateVars.blocks_sidebar = (blocksByRegion.sidebar || []).map(b => b.content).join('');
+    templateVars.blocks_before_content = (blocksByRegion['before-content'] || []).map(b => b.content).join('');
+    templateVars.blocks_after_content = (blocksByRegion['after-content'] || []).map(b => b.content).join('');
+    
+  } catch (error) {
+    console.warn('Could not load blocks:', error);
+    // Set empty defaults
+    templateVars.blocks = {};
+    templateVars.blocks_header = '';
+    templateVars.blocks_footer = '';
+    templateVars.blocks_sidebar = '';
+    templateVars.blocks_before_content = '';
+    templateVars.blocks_after_content = '';
+  }
 }
 
 /**

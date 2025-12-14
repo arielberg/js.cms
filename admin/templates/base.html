@@ -10,28 +10,40 @@
         <title>${ this.strings.siteName } - ${ this.pageTitle }</title>
     </head>
 <body class="${ this.pageClass }" data-theme="${ this.theme || 'default' }">
-  <nav class="navbar navbar-expand-md fixed-top">
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>  
-    <div class="inner">
-      <a class="navbar-brand" href=""><img width="120px" src="assets/images/logo.png" /></a>
-      <div class="collapse navbar-collapse" id="mainMenu">        
-        ${ this.menu_main }
+  <header id="header-region">
+    ${ this.blocks_header || '' }
+    <nav class="navbar navbar-expand-md fixed-top">
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>  
+      <div class="inner">
+        <a class="navbar-brand" href=""><img width="120px" src="assets/images/logo.png" /></a>
+        <div class="collapse navbar-collapse" id="mainMenu">        
+          ${ this.menu_main }
+        </div>
+        <form class="form-inline my-2 my-lg-0">
+          <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
       </div>
-      <form class="form-inline my-2 my-lg-0">
-        <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-      </form>
-    </div>
-  </nav>
+    </nav>
+  </header>
 
+  <div class="page-wrapper">
+    ${ this.blocks_sidebar || '' }
     <main id='main' role="main" class="container">
       <div class="starter-template">
+        ${ this.blocks_before_content || '' }
         <h1>${ this.pageTitle }</h1>          
-          ${ this.content }
+        ${ this.content }
+        ${ this.blocks_after_content || '' }
       </div>
     </main>
+  </div>
+  
+  <footer id="footer-region">
+    ${ this.blocks_footer || '' }
+  </footer>
    
     <script type="text/javascript">
 

@@ -9,6 +9,8 @@ import { contentTypeManager } from './contentTypeManager.mjs';
 import { ensureConfigured } from './configChecker.mjs';
 import { initNavigation, updateActiveNav } from './navigation.mjs';
 import { getFixedContentTypes } from '../../core/fixedContentTypes.mjs';
+import { blocksManager } from './blocksManager.mjs';
+import { themeManager } from './themeManager.mjs';
 
 
 /**
@@ -213,6 +215,14 @@ export function routeToCall(){
     case '#menus'==hash:
       hideLoadingMessage();
       menuBuilder(document.getElementById('content'));
+    break;
+    case '#blocks'==hash:
+      hideLoadingMessage();
+      blocksManager(document.getElementById('content'));
+    break;
+    case '#theme'==hash:
+      hideLoadingMessage();
+      themeManager(document.getElementById('content'));
     break;
     case '#rerender'==hash:
       hideLoadingMessage();
