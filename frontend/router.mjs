@@ -581,9 +581,12 @@ async function renderPage(templateVars) {
   // On GitHub Pages (with basePath), prepend basePath: /repo/assets/...
   const assetBasePath = basePath || '';
   
+  console.log('Fixing asset paths, basePath:', basePath, 'assetBasePath:', assetBasePath);
+  
   // Fix relative asset paths (assets/...) to be absolute
   // Match: href="assets/ or src="assets/ (not already absolute or external)
   // Use a function to ensure proper path construction
+  let replacements = 0;
   baseTemplate = baseTemplate.replace(/href="([^"]+)"/g, (match, path) => {
     // Skip if already absolute (starts with /) or external (starts with http)
     if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/')) {
@@ -593,6 +596,8 @@ async function renderPage(templateVars) {
     if (path.startsWith('assets/')) {
       // Construct absolute path: basePath + / + path
       const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
+      replacements++;
+      console.log(`Replacing href: "${path}" -> "${absolutePath}"`);
       return `href="${absolutePath}"`;
     }
     return match;
@@ -607,6 +612,8 @@ async function renderPage(templateVars) {
     if (path.startsWith('assets/')) {
       // Construct absolute path: basePath + / + path
       const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
+      replacements++;
+      console.log(`Replacing src: "${path}" -> "${absolutePath}"`);
       return `src="${absolutePath}"`;
     }
     return match;
@@ -615,19 +622,35 @@ async function renderPage(templateVars) {
   // Fix relative paths starting with ./
   baseTemplate = baseTemplate.replace(/href="\.\/([^"]+)"/g, (match, path) => {
     const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
+    replacements++;
+    console.log(`Replacing href: "./${path}" -> "${absolutePath}"`);
     return `href="${absolutePath}"`;
   });
   baseTemplate = baseTemplate.replace(/src="\.\/([^"]+)"/g, (match, path) => {
     const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
+    replacements++;
+    console.log(`Replacing src: "./${path}" -> "${absolutePath}"`);
     return `src="${absolutePath}"`;
   });
+  
+  console.log(`Total path replacements: ${replacements}`);
   
   // Render template
   const html = new Function("return `" + baseTemplate + "`;").call(templateVars);
   
+  // Also fix paths in the rendered HTML as a fallback (in case template variables interfered)
+  const finalHtml = html.replace(/(href|src)="(assets\/[^"]+)"/g, (match, attr, path) => {
+    if (!path.startsWith('/') && !path.startsWith('http://') && !path.startsWith('https://')) {
+      const absolutePath = assetBasePath ? `${assetBasePath}/${path}` : `/${path}`;
+      console.log(`Post-render fix: ${attr}="${path}" -> ${attr}="${absolutePath}"`);
+      return `${attr}="${absolutePath}"`;
+    }
+    return match;
+  });
+  
   // Replace document content
   document.open();
-  document.write(html);
+  document.write(finalHtml);
   document.close();
 }
 
