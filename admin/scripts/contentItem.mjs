@@ -339,23 +339,30 @@ export async function contentItemLoader ( contentType , ItemId ) {
 /**
    * Render HTML menu from JSON
    */
-  export function renderMenu( jsonMenu ) {
+  export function renderMenu( jsonMenu, basePath = '' ) {
     let menuHtml = '';
     if( jsonMenu ) {
       menuHtml = `<ul class='navbar-nav'>`;
       jsonMenu.forEach( menuItem => {
+          const url = menuItem.url || '';
+          const fullUrl = basePath ? `${basePath}/${url}` : (url ? `/${url}` : '/');
+          
           if ( menuItem.subItems ) { 
             menuHtml += `<li class='nav-item dropdown'>
-              <a>${ menuItem.label }</a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown${menuItem.label.replace(/\s+/g, '')}" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">${ menuItem.label }</a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown${menuItem.label.replace(/\s+/g, '')}">
                   ${ menuItem.subItems
-                      .map( menuSubItem=>`<a class="dropdown-item"  href="/${ menuSubItem.url }">${ menuSubItem.label }</a>`)
+                      .map( menuSubItem => {
+                        const subUrl = menuSubItem.url || '';
+                        const subFullUrl = basePath ? `${basePath}/${subUrl}` : (subUrl ? `/${subUrl}` : '/');
+                        return `<a class="dropdown-item" href="${subFullUrl}">${ menuSubItem.label }</a>`;
+                      })
                       .join('') }
               </div>
             </li>\n`;
           }
           else { 
-            menuHtml += `<li><a href="/${ menuItem.url }">${ menuItem.label }</a></li>\n`;
+            menuHtml += `<li class="nav-item"><a class="nav-link" href="${fullUrl}">${ menuItem.label }</a></li>\n`;
           }
       });
       

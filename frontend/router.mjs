@@ -404,7 +404,9 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
     console.warn('Could not load menu:', e);
   }
   
-  const menuHtml = renderMenu(menu);
+  // Get base path for menu URLs
+  const basePath = getBasePath();
+  const menuHtml = renderMenu(menu, basePath);
   
   // Build strings object
   const strings = {};
@@ -571,6 +573,16 @@ async function renderPage(templateVars) {
   // Inject theme styles into template
   if (themeStyles) {
     baseTemplate = baseTemplate.replace('</head>', themeStyles + '</head>');
+  }
+  
+  // Fix CSS and asset paths for GitHub Pages
+  const basePath = getBasePath();
+  if (basePath) {
+    // Fix relative asset paths in template
+    baseTemplate = baseTemplate.replace(/href="assets\//g, `href="${basePath}/assets/`);
+    baseTemplate = baseTemplate.replace(/src="assets\//g, `src="${basePath}/assets/`);
+    baseTemplate = baseTemplate.replace(/href="\.\//g, `href="${basePath}/`);
+    baseTemplate = baseTemplate.replace(/src="\.\//g, `src="${basePath}/`);
   }
   
   // Render template

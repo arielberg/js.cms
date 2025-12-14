@@ -320,6 +320,16 @@ function setupContentTypes() {
     const insertBefore = menusLink ? menusLink.closest('li') : null;
     
     contentTypes.reverse().forEach(contentType => {
+      let homepageLink = '';
+      // Add homepage edit link for pages content type
+      if (contentType.name === 'page') {
+        homepageLink = `
+            <li>
+              <a class="nav-link" href="#${contentType.name}/homepage" style="font-weight: bold; color: #667eea;">Edit Homepage</a>
+            </li>
+        `;
+      }
+      
       const html = `
         <li id='${contentType.name}_type_menu' class='contentTypeLinks'>
           <h3>${contentType.labelPlural}</h3>
@@ -330,6 +340,7 @@ function setupContentTypes() {
             <li>
               <a class="nav-link" href="#${contentType.name}/new">${ utils.str('admin_AddNewLink') }</a>
             </li>
+            ${homepageLink}
           </ul>
         </li>
         <li><hr/></li>
