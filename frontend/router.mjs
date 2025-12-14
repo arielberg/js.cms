@@ -376,6 +376,7 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
   
   // Get site theme from appSettings
   const siteTheme = appSettings.Theme || 'default';
+  const themeColors = appSettings.ThemeColors || {};
   
   // Add theme class to pageClass
   const themeClass = `theme-${siteTheme}`;
@@ -390,6 +391,7 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
     pageDescription: strings.SEODefaultDescription || '',
     pageClass: finalPageClass,
     theme: siteTheme,
+    themeColors: themeColors,
     content: ''
   };
 }
@@ -486,6 +488,46 @@ async function renderPage(templateVars) {
   if (!baseTemplate) {
     showError('Failed to load page template');
     return;
+  }
+  
+  // Inject CSS variables for theme colors if they exist
+  let themeStyles = '';
+  if (templateVars.themeColors && Object.keys(templateVars.themeColors).length > 0) {
+    const colors = templateVars.themeColors;
+    themeStyles = `
+      <style>
+        :root {
+          ${colors.primary ? `--theme-primary: ${colors.primary};` : ''}
+          ${colors.secondary ? `--theme-secondary: ${colors.secondary};` : ''}
+          ${colors.background ? `--theme-background: ${colors.background};` : ''}
+          ${colors.text ? `--theme-text: ${colors.text};` : ''}
+          ${colors.accent ? `--theme-accent: ${colors.accent};` : ''}
+        }
+        body[data-theme="${templateVars.theme}"] {
+          ${colors.primary ? `--primary-color: ${colors.primary};` : ''}
+          ${colors.secondary ? `--secondary-color: ${colors.secondary};` : ''}
+          ${colors.background ? `background-color: ${colors.background};` : ''}
+          ${colors.text ? `color: ${colors.text};` : ''}
+        }
+        body[data-theme="${templateVars.theme}"] .btn-primary {
+          ${colors.primary ? `background-color: ${colors.primary}; border-color: ${colors.primary};` : ''}
+        }
+        body[data-theme="${templateVars.theme}"] .btn-primary:hover {
+          ${colors.primary ? `background-color: ${colors.primary}; opacity: 0.9;` : ''}
+        }
+        body[data-theme="${templateVars.theme}"] a {
+          ${colors.primary ? `color: ${colors.primary};` : ''}
+        }
+        body[data-theme="${templateVars.theme}"] .navbar {
+          ${colors.primary ? `background-color: ${colors.primary};` : ''}
+        }
+      </style>
+    `;
+  }
+  
+  // Inject theme styles into template
+  if (themeStyles) {
+    baseTemplate = baseTemplate.replace('</head>', themeStyles + '</head>');
   }
   
   // Render template
