@@ -575,15 +575,20 @@ async function renderPage(templateVars) {
     baseTemplate = baseTemplate.replace('</head>', themeStyles + '</head>');
   }
   
-  // Fix CSS and asset paths for GitHub Pages
-  const basePath = getBasePath();
-  if (basePath) {
-    // Fix relative asset paths in template
-    baseTemplate = baseTemplate.replace(/href="assets\//g, `href="${basePath}/assets/`);
-    baseTemplate = baseTemplate.replace(/src="assets\//g, `src="${basePath}/assets/`);
-    baseTemplate = baseTemplate.replace(/href="\.\//g, `href="${basePath}/`);
-    baseTemplate = baseTemplate.replace(/src="\.\//g, `src="${basePath}/`);
-  }
+  // Fix CSS and asset paths - always make them absolute
+  // This fixes issues on localhost with subpaths like /homepage/
+  // On localhost (no basePath), make paths absolute from root: /assets/...
+  // On GitHub Pages (with basePath), prepend basePath: /repo/assets/...
+  const assetBasePath = basePath || '';
+  
+  // Fix relative asset paths (assets/...) to be absolute
+  // Simple replacement: href="assets/ -> href="/assets/ or href="/repo/assets/
+  baseTemplate = baseTemplate.replace(/href="assets\//g, `href="${assetBasePath}/assets/`);
+  baseTemplate = baseTemplate.replace(/src="assets\//g, `src="${assetBasePath}/assets/`);
+  
+  // Fix relative paths starting with ./
+  baseTemplate = baseTemplate.replace(/href="\.\//g, `href="${assetBasePath}/`);
+  baseTemplate = baseTemplate.replace(/src="\.\//g, `src="${assetBasePath}/`);
   
   // Render template
   const html = new Function("return `" + baseTemplate + "`;").call(templateVars);
