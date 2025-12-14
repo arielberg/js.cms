@@ -5,17 +5,12 @@ import { commitFiles, contentItemForm, contentList , contentItemLoader, renderMe
  * Get base path for GitHub Pages (e.g., /test2)
  */
 function getBasePath() {
-  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
+  const githubPagesMatch = window.location.href.match(/(.*)github\.io\/([^/]+)/);
   if (githubPagesMatch) {
-    const repoName = githubPagesMatch[1];
-    const currentPath = window.location.pathname;
-    if (currentPath.startsWith(`/${repoName}/`)) {
-      return `/${repoName}`;
-    } else if (currentPath === `/${repoName}`) {
-      return `/${repoName}`;
-    }
+    const currentPath = githubPagesMatch[0];
+    return currentPath;
   }
-  return '';
+  return  window.location.protocol+'//'+window.location.host;
 } 
 
 
