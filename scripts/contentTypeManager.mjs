@@ -5,7 +5,7 @@
 
 import * as utils from './utils.js';
 import { commitFiles } from './contentItem.mjs';
-import { isFixedContentType, getFixedContentTypes } from '../../core/fixedContentTypes.mjs';
+import { isFixedContentType, getFixedContentTypes } from '../core/fixedContentTypes.mjs';
 
 let fieldCounter = 0;
 

@@ -3,12 +3,12 @@ import { commitFiles, contentItemForm, contentList , contentItemLoader} from './
 import { menuBuilder } from './menu.mjs'; 
 import { rerenderer, rederCustomPages } from './rerender.mjs'; 
 import {doLogin} from './login.mjs'; 
-import { loadModules, mergeContentTypes } from '../../core/moduleLoader.mjs';
-import { registerHooks, executeHook } from '../../core/hooks/hookSystem.mjs';
+import { loadModules, mergeContentTypes } from '../core/moduleLoader.mjs';
+import { registerHooks, executeHook } from '../core/hooks/hookSystem.mjs';
 import { contentTypeManager } from './contentTypeManager.mjs';
 import { ensureConfigured } from './configChecker.mjs';
 import { initNavigation, updateActiveNav } from './navigation.mjs';
-import { getFixedContentTypes } from '../../core/fixedContentTypes.mjs';
+import { getFixedContentTypes } from '../core/fixedContentTypes.mjs';
 import { blocksManager } from './blocksManager.mjs';
 import { themeManager } from './themeManager.mjs';
 
