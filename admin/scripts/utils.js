@@ -39,7 +39,10 @@ export let getLocalStorage = function(property) {
  */
 export let loadSystemFile = function( variableName , filePath, onSuccess ) {
 
-    if ( localStorage.getItem(variableName) ) {
+    // For contentTypes, always fetch fresh (don't use cache) to ensure we get latest from GitHub
+    const skipCache = variableName === 'contentTypes' || variableName === 'configContentTypes';
+    
+    if ( !skipCache && localStorage.getItem(variableName) ) {
       window[variableName] = JSON.parse(localStorage.getItem(variableName));
       onSuccess();
       return;
@@ -70,7 +73,10 @@ export let loadSystemFile = function( variableName , filePath, onSuccess ) {
       const currentPath = pathsToTry[currentPathIndex];
       currentPathIndex++;
       
-      fetch(currentPath)
+      // Add cache-busting for contentTypes to ensure fresh data
+      const fetchPath = skipCache ? currentPath + '?t=' + Date.now() : currentPath;
+      
+      fetch(fetchPath)
         .then(function(response){
           if (!response.ok) {
             throw Error(response.statusText);
@@ -78,6 +84,10 @@ export let loadSystemFile = function( variableName , filePath, onSuccess ) {
           return response.json();
         }).then(function(json){
             window[variableName] = json;
+            // Don't cache contentTypes in localStorage (always fetch fresh)
+            if (!skipCache) {
+              localStorage.setItem(variableName, JSON.stringify(json));
+            }
             onSuccess();
           })
         .catch(function(error) {

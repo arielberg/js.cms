@@ -281,12 +281,24 @@ function hideLoadingMessage() {
 function setupContentTypes() {
   const contentTypes = utils.getGlobalVariable('contentTypes') || [];
   
+  // Remove existing content type links to prevent duplicates
+  const sidebarLinks = document.getElementById('sidebarLinks');
+  if (sidebarLinks) {
+    const existingContentTypeLinks = sidebarLinks.querySelectorAll('.contentTypeLinks, .contentTypeLinks + li');
+    existingContentTypeLinks.forEach(link => link.remove());
+  }
+  
   if( contentTypes.length > 0 ) {
     let contentTypesSingle = '(' + contentTypes.map(a=>a.name).join('|') +')';
     regexExpressions.itemManagment = new RegExp('#'+contentTypesSingle+'\\/([^\/]+)',"i");
     
+    // Find the position after "Content Types" link and before "Menus" link
+    const contentTypesLink = sidebarLinks.querySelector('a[href="#content-types"]');
+    const menusLink = sidebarLinks.querySelector('a[href="#menus"]');
+    const insertBefore = menusLink ? menusLink.closest('li') : null;
+    
     contentTypes.reverse().forEach(contentType => {
-      document.getElementById('sidebarLinks').insertAdjacentHTML('afterbegin',  `
+      const html = `
         <li id='${contentType.name}_type_menu' class='contentTypeLinks'>
           <h3>${contentType.labelPlural}</h3>
           <ul>
@@ -299,7 +311,18 @@ function setupContentTypes() {
           </ul>
         </li>
         <li><hr/></li>
-      `);
+      `;
+      
+      if (insertBefore) {
+        insertBefore.insertAdjacentHTML('beforebegin', html);
+      } else {
+        // Fallback: insert after Content Types link
+        if (contentTypesLink) {
+          contentTypesLink.closest('li').insertAdjacentHTML('afterend', html);
+        } else {
+          sidebarLinks.insertAdjacentHTML('afterbegin', html);
+        }
+      }
     });
     
     // Update navigation after content types are added

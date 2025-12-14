@@ -819,8 +819,21 @@ export function contentItemForm ( contentType , editedItem , op ) {
  * Commit changes to the git repository
  */
 export function commitFiles( commitMessage , files ) {
+  console.log('commitFiles called:', { commitMessage, files });
   
   let APIconnect = utils.getGlobalVariable('gitApi');
+  
+  if (!APIconnect) {
+    console.error('GitHub API not available');
+    throw new Error('GitHub API not initialized. Please log in first.');
+  }
+  
+  if (!APIconnect.commitChanges) {
+    console.error('commitChanges method not available on gitApi');
+    throw new Error('GitHub API commitChanges method not available');
+  }
+  
+  console.log('Calling APIconnect.commitChanges...');
   return APIconnect.commitChanges( commitMessage, files);
 }
 

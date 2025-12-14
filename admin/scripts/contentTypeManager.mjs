@@ -29,8 +29,14 @@ export function contentTypeManager(parentElement) {
         </div>
     `;
     
+    // Load content types with cache-busting
     loadContentTypes().then(contentTypes => {
+        // Store in window for form editing
+        window.contentTypesList = contentTypes;
         displayContentTypes(contentTypes);
+    }).catch(error => {
+        console.error('Error loading content types:', error);
+        displayContentTypes([]);
     });
 }
 
@@ -40,25 +46,32 @@ export function contentTypeManager(parentElement) {
  */
 async function loadContentTypes() {
     try {
+        // Add cache-busting to ensure fresh data
+        const cacheBuster = '?t=' + Date.now();
+        
         // Try site config first (local fetch)
-        let response = await fetch('/config/contentTypes.json');
+        let response = await fetch('/config/contentTypes.json' + cacheBuster);
         if (!response.ok) {
-            response = await fetch('../../config/contentTypes.json');
+            response = await fetch('../../config/contentTypes.json' + cacheBuster);
         }
         if (!response.ok) {
-            response = await fetch('../config/contentTypes.json');
+            response = await fetch('../config/contentTypes.json' + cacheBuster);
         }
         if (response.ok) {
-            return await response.json();
+            const data = await response.json();
+            console.log('Loaded content types from local file:', data);
+            return data;
         }
         
         // Fall back to cms-core defaults
-        response = await fetch('/cms-core/config/contentTypes.json');
+        response = await fetch('/cms-core/config/contentTypes.json' + cacheBuster);
         if (!response.ok) {
-            response = await fetch('../config/contentTypes.json');
+            response = await fetch('../config/contentTypes.json' + cacheBuster);
         }
         if (response.ok) {
-            return await response.json();
+            const data = await response.json();
+            console.log('Loaded content types from cms-core defaults:', data);
+            return data;
         }
         
         // Last resort: try GitHub API (only if gitApi is available and configured)
@@ -66,13 +79,17 @@ async function loadContentTypes() {
         const appSettings = utils.getGlobalVariable('appSettings');
         if (gitApi && appSettings && appSettings.GIT_Account !== 'your-username') {
             try {
+                console.log('Loading content types from GitHub API...');
                 const content = await gitApi.getFile('config/contentTypes.json');
-                return JSON.parse(content);
+                const data = JSON.parse(content);
+                console.log('Loaded content types from GitHub API:', data);
+                return data;
             } catch (apiError) {
                 console.warn('Could not load from GitHub API, using empty array:', apiError);
             }
         }
         
+        console.log('No content types found, returning empty array');
         return [];
     } catch (error) {
         console.error('Error loading content types:', error);
@@ -84,12 +101,22 @@ async function loadContentTypes() {
  * Save content types to config
  */
 async function saveContentTypes(contentTypes) {
+    console.log('saveContentTypes called with:', contentTypes);
+    
     // Save to site config directory (not cms-core)
     const files = [{
         content: JSON.stringify(contentTypes, null, 4),
         filePath: 'config/contentTypes.json',
         encoding: 'utf-8'
     }];
+    
+    console.log('Files to commit:', files);
+    console.log('Calling commitFiles...');
+    
+    const gitApi = utils.getGlobalVariable('gitApi');
+    if (!gitApi) {
+        throw new Error('GitHub API not initialized. Please log in first.');
+    }
     
     return commitFiles('Update content types', files);
 }
@@ -246,7 +273,7 @@ export function showContentTypeForm(contentTypeIndex = null) {
                 </div>
                 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary btn-lg">
+                    <button type="submit" class="btn btn-primary btn-lg" id="saveContentTypeButton">
                         ✓ Save Content Type
                     </button>
                     <button type="button" class="btn btn-secondary btn-lg" onclick="window.cancelContentTypeForm()">
@@ -259,9 +286,31 @@ export function showContentTypeForm(contentTypeIndex = null) {
     
     manager.innerHTML = formHTML;
     
-    document.getElementById('contentTypeFormElement').onsubmit = (e) => {
+    const form = document.getElementById('contentTypeFormElement');
+    const submitButton = document.getElementById('saveContentTypeButton');
+    
+    // Handle form submission
+    form.onsubmit = (e) => {
         e.preventDefault();
-        saveContentType(contentTypeIndex);
+        console.log('Form submitted, calling saveContentType with index:', contentTypeIndex);
+        try {
+            saveContentType(contentTypeIndex);
+        } catch (error) {
+            console.error('Error in form submission handler:', error);
+            utils.errorHandler({ message: 'Error submitting form: ' + (error.message || error) });
+        }
+    };
+    
+    // Also handle button click as fallback
+    submitButton.onclick = (e) => {
+        e.preventDefault();
+        console.log('Submit button clicked, calling saveContentType with index:', contentTypeIndex);
+        try {
+            saveContentType(contentTypeIndex);
+        } catch (error) {
+            console.error('Error in button click handler:', error);
+            utils.errorHandler({ message: 'Error submitting form: ' + (error.message || error) });
+        }
     };
     
     window.editingContentTypeIndex = contentTypeIndex;
@@ -548,6 +597,8 @@ function getFieldData(fieldEditor) {
  * Save content type
  */
 async function saveContentType(editIndex) {
+    console.log('saveContentType called with editIndex:', editIndex);
+    
     const name = document.getElementById('ctName').value.trim();
     const label = document.getElementById('ctLabel').value.trim();
     const labelPlural = document.getElementById('ctLabelPlural').value.trim();
@@ -610,17 +661,63 @@ async function saveContentType(editIndex) {
         contentTypes.push(contentType);
     }
     
+    // Get submit button and disable it, show loading state
+    const submitButton = document.querySelector('#contentTypeFormElement button[type="submit"]');
+    const originalButtonText = submitButton ? submitButton.innerHTML : '';
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+    }
+    
+    console.log('Starting to save content types:', contentTypes);
+    
     try {
-        await saveContentTypes(contentTypes);
+        console.log('Calling saveContentTypes...');
+        const result = await saveContentTypes(contentTypes);
+        console.log('saveContentTypes result:', result);
+        
+        // Clear cached content types from localStorage to force fresh load
+        localStorage.removeItem('configContentTypes');
+        localStorage.removeItem('contentTypes');
+        
+        // Update global variable immediately
         window.contentTypesList = contentTypes;
+        utils.setGlobalVariable('contentTypes', contentTypes);
+        utils.setGlobalVariable('configContentTypes', contentTypes);
+        
+        console.log('Content type saved successfully');
         utils.successMessage('Content type saved successfully');
         
-        // Reload admin to update sidebar
+        // Wait a bit for GitHub API to propagate, then reload
         setTimeout(() => {
+            // Clear cache again before reload
+            localStorage.removeItem('configContentTypes');
+            localStorage.removeItem('contentTypes');
             location.reload();
-        }, 1000);
+        }, 2000);
     } catch (error) {
-        utils.errorHandler(error);
+        console.error('Error saving content type:', error);
+        console.error('Error details:', {
+            message: error?.message,
+            stack: error?.stack,
+            error: error
+        });
+        
+        // Restore button state on error
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
+        }
+        
+        // Ensure error has a message property
+        const errorObj = error && typeof error === 'object' && error.message 
+            ? error 
+            : { message: error?.toString() || 'Unknown error occurred while saving content type' };
+        
+        utils.errorHandler(errorObj);
+        
+        // Also show alert as fallback
+        alert('Error saving content type: ' + (errorObj.message || 'Unknown error'));
     }
 }
 

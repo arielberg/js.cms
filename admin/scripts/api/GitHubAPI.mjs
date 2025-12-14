@@ -59,60 +59,80 @@ export let getFile = async function( path ) {
  * Todo: better support blob for binary files 
  */
 export let commitChanges = async function( commitMessage, files ) {
+  // Validate files array
+  if (!files || !Array.isArray(files) || files.length === 0) {
+    const error = new Error('No files to commit');
+    console.error('Commit failed:', error);
+    throw error;
+  }
+  
+  // Validate each file has required properties
+  for (const file of files) {
+    if (!file.filePath || file.content === undefined) {
+      const error = new Error(`Invalid file data: missing filePath or content`);
+      console.error('Commit failed:', error);
+      throw error;
+    }
+  }
+  
   document.body.classList.add('loading');
-  return getRepo().fetch()
-    .then( repo =>{
-      return repo.git.refs('heads/main').fetch()
-        .then(main=> {
-          // build files
-          return  Promise.all(
-                files.map( fileData => {
-                  return createBlob( fileData.filePath, fileData.content , fileData.encoding);
-                })
-              )
-              // call commit
-            .then( filesTree =>{
-              console.log('commit start - build tree');
-              return repo.git.trees.create({
-                  tree: filesTree,
-                  base_tree: main.object.sha
-                }).then( tree => {
-                  return repo.git.commits.create({
-                    message: commitMessage,
-                    tree: tree.sha,
-                    parents: [main.object.sha] })
-                }).then( commit => {
-                  console.log('tree has been added, commit SHA:', commit.sha);
-                  return main.update({sha: commit.sha}).then(ref => {
-                    // Return both the commit and ref for verification
-                    return {
-                      commit: commit,
-                      ref: ref,
-                      sha: commit.sha,
-                      success: true
-                    };
-                  });
-                });
-              })
-              .then( res=> {
-                console.log('Commit successful:', res);
-                // Verify the commit actually succeeded
-                if (!res || !res.sha || !res.success) {
-                  console.error('Commit response invalid:', res);
-                  throw new Error('Commit response invalid');
-                }
-                console.log('Commit verified - SHA:', res.sha);
-                return res;
-              })
-              .catch( error=> {
-                console.error('Commit failed:', error);
-                document.body.classList.remove('loading');
-                // Re-throw the error so the caller can handle it
-                throw error;
-              })
-              .finally( ()=>{
-                document.body.classList.remove('loading');
-              });
-          });
-        });
+  
+  try {
+    const repo = await getRepo().fetch();
+    const main = await repo.git.refs('heads/main').fetch();
+    
+    // Create blobs for all files
+    const filesTree = await Promise.all(
+      files.map( fileData => {
+        return createBlob( fileData.filePath, fileData.content , fileData.encoding);
+      })
+    );
+    
+    console.log('commit start - build tree');
+    
+    // Create tree
+    const tree = await repo.git.trees.create({
+      tree: filesTree,
+      base_tree: main.object.sha
+    });
+    
+    // Create commit
+    const commit = await repo.git.commits.create({
+      message: commitMessage,
+      tree: tree.sha,
+      parents: [main.object.sha]
+    });
+    
+    console.log('tree has been added, commit SHA:', commit.sha);
+    
+    // Update ref
+    const ref = await main.update({sha: commit.sha});
+    
+    // Return result
+    const result = {
+      commit: commit,
+      ref: ref,
+      sha: commit.sha,
+      success: true
+    };
+    
+    console.log('Commit successful:', result);
+    
+    // Verify the commit actually succeeded
+    if (!result || !result.sha || !result.success) {
+      console.error('Commit response invalid:', result);
+      throw new Error('Commit response invalid');
+    }
+    
+    console.log('Commit verified - SHA:', result.sha);
+    return result;
+    
+  } catch (error) {
+    console.error('Commit failed:', error);
+    // Re-throw the error so the caller can handle it
+    throw error;
+  } finally {
+    // Always remove loading class
+    document.body.classList.remove('loading');
+  }
 }
