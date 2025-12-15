@@ -116,58 +116,105 @@ async function fetchJS(filePath, basePath = '') {
 }
 
 /**
- * Inline CSS and JS assets into HTML content
+ * Get effective base path based on settings
+ */
+function getEffectiveBasePath() {
+  const appSettings = utils.getGlobalVariable('appSettings') || {};
+  const basePathMode = appSettings.BasePath_Mode || 'auto';
+  
+  if (basePathMode === 'set') {
+    return appSettings.BasePath_Value || '';
+  } else if (basePathMode === 'relative') {
+    return '';
+  } else {
+    // Auto-detect
+    return getBasePath();
+  }
+}
+
+/**
+ * Inline CSS and JS assets into HTML content (respects settings)
  */
 async function inlineAssets(htmlContent, basePath = '') {
+  const appSettings = utils.getGlobalVariable('appSettings') || {};
+  const cssMode = appSettings.CSS_Mode || 'embed';
+  const jsMode = appSettings.JS_Mode || 'embed';
+  
+  // Use effective base path
+  const effectiveBasePath = getEffectiveBasePath();
+  const assetBasePath = effectiveBasePath || basePath;
+  
   let finalHtml = htmlContent;
   
-  // Fetch and inline CSS files
-  const cssFiles = [
-    'assets/css/style.css',
-    'assets/css/bootstrap.min.css'
-  ];
-  
-  let inlineStyles = '';
-  for (const cssFile of cssFiles) {
-    try {
-      const cssContent = await fetchCSS(cssFile, basePath);
-      if (cssContent) {
-        inlineStyles += `<style>${cssContent}</style>\n`;
-        console.log(`✓ Inlined CSS: ${cssFile}`);
+  // Handle CSS
+  if (cssMode === 'embed') {
+    // Fetch and inline CSS files
+    const cssFiles = [
+      'assets/css/style.css',
+      'assets/css/bootstrap.min.css'
+    ];
+    
+    let inlineStyles = '';
+    for (const cssFile of cssFiles) {
+      try {
+        const cssContent = await fetchCSS(cssFile, assetBasePath);
+        if (cssContent) {
+          inlineStyles += `<style>${cssContent}</style>\n`;
+          console.log(`✓ Inlined CSS: ${cssFile}`);
+        }
+      } catch (error) {
+        console.warn(`Error loading CSS ${cssFile}:`, error);
       }
-    } catch (error) {
-      console.warn(`Error loading CSS ${cssFile}:`, error);
+    }
+    
+    // Remove CSS link tags and inject inline styles
+    if (inlineStyles) {
+      finalHtml = finalHtml.replace(/<link[^>]*href=["']?assets\/css\/[^"']+["']?[^>]*>/gi, '');
+      finalHtml = finalHtml.replace('</head>', inlineStyles + '</head>');
+    }
+  } else {
+    // Link mode - update CSS paths to use correct base path
+    if (assetBasePath) {
+      finalHtml = finalHtml.replace(
+        /<link[^>]*href=["'](assets\/css\/[^"']+)["']/gi,
+        `<link rel="stylesheet" type="text/css" href="${assetBasePath}/$1"`
+      );
     }
   }
   
-  // Fetch and inline JS files
-  const jsFiles = [
-    'assets/scripts/main.js'
-  ];
-  
-  let inlineScripts = '';
-  for (const jsFile of jsFiles) {
-    try {
-      const jsContent = await fetchJS(jsFile, basePath);
-      if (jsContent) {
-        inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
-        console.log(`✓ Inlined JS: ${jsFile}`);
+  // Handle JS
+  if (jsMode === 'embed') {
+    // Fetch and inline JS files
+    const jsFiles = [
+      'assets/scripts/main.js'
+    ];
+    
+    let inlineScripts = '';
+    for (const jsFile of jsFiles) {
+      try {
+        const jsContent = await fetchJS(jsFile, assetBasePath);
+        if (jsContent) {
+          inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
+          console.log(`✓ Inlined JS: ${jsFile}`);
+        }
+      } catch (error) {
+        console.warn(`Error loading JS ${jsFile}:`, error);
       }
-    } catch (error) {
-      console.warn(`Error loading JS ${jsFile}:`, error);
     }
-  }
-  
-  // Remove CSS link tags only if we successfully inlined styles
-  if (inlineStyles) {
-    finalHtml = finalHtml.replace(/<link[^>]*href=["']?assets\/css\/[^"']+["']?[^>]*>/gi, '');
-    finalHtml = finalHtml.replace('</head>', inlineStyles + '</head>');
-  }
-  
-  // Remove JS script tags only if we successfully inlined scripts
-  if (inlineScripts) {
-    finalHtml = finalHtml.replace(/<script[^>]*src=["']?assets\/scripts\/[^"']+["']?[^>]*><\/script>/gi, '');
-    finalHtml = finalHtml.replace('</body>', inlineScripts + '</body>');
+    
+    // Remove JS script tags and inject inline scripts
+    if (inlineScripts) {
+      finalHtml = finalHtml.replace(/<script[^>]*src=["']?assets\/scripts\/[^"']+["']?[^>]*><\/script>/gi, '');
+      finalHtml = finalHtml.replace('</body>', inlineScripts + '</body>');
+    }
+  } else {
+    // Link mode - update JS paths to use correct base path
+    if (assetBasePath) {
+      finalHtml = finalHtml.replace(
+        /<script[^>]*src=["'](assets\/scripts\/[^"']+)["']/gi,
+        `<script type="text/javascript" src="${assetBasePath}/$1"`
+      );
+    }
   }
   
   return finalHtml;

@@ -11,6 +11,7 @@ import { initNavigation, updateActiveNav } from './navigation.mjs';
 import { getFixedContentTypes } from '../core/fixedContentTypes.mjs';
 import { blocksManager } from './blocksManager.mjs';
 import { themeManager } from './themeManager.mjs';
+import { settingsManager } from './settingsManager.mjs';
 
 
 /**
@@ -224,6 +225,11 @@ export function routeToCall(){
       hideLoadingMessage();
       themeManager(document.getElementById('content'));
     break;
+    case '#settings'==hash:
+    case '#global-settings'==hash:
+      hideLoadingMessage();
+      settingsManager(document.getElementById('content'));
+    break;
     case '#rerender'==hash:
       hideLoadingMessage();
       rerenderer(document.getElementById('content'));
@@ -274,6 +280,7 @@ export function routeToCall(){
               <ul>
                 <li><a href="#content-types">Content Types</a> - Manage your content types</li>
                 <li><a href="#menus">Menus</a> - Manage navigation menus</li>
+                <li><a href="#settings">Global Settings</a> - Configure asset loading and paths</li>
                 <li><a href="#translate">Translation Interface</a> - Manage translations</li>
                 <li><a href="#rerender">Rebuild</a> - Rebuild static pages</li>
               </ul>

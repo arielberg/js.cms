@@ -734,54 +734,84 @@ async function renderPage(templateVars) {
     baseTemplate = baseTemplate.replace('</head>', themeStyles + '</head>');
   }
   
-  // Inline all assets (CSS, JS, images) to avoid path resolution issues
-  const assetBasePath = basePath || '';
-  console.log('Inlining assets, basePath:', basePath);
+  // Get settings for asset loading
+  const cssMode = appSettings?.CSS_Mode || 'embed';
+  const jsMode = appSettings?.JS_Mode || 'embed';
+  const basePathMode = appSettings?.BasePath_Mode || 'auto';
   
-  // Fetch and inline CSS files
-  const cssFiles = [
-    'assets/css/style.css',
-    'assets/css/bootstrap.min.css'
-  ];
+  // Determine effective base path
+  let effectiveBasePath = basePath;
+  if (basePathMode === 'set' && appSettings?.BasePath_Value) {
+    effectiveBasePath = appSettings.BasePath_Value;
+  } else if (basePathMode === 'relative') {
+    effectiveBasePath = '';
+  }
   
+  const assetBasePath = effectiveBasePath || '';
+  console.log('Loading assets, mode:', { cssMode, jsMode, basePathMode }, 'basePath:', assetBasePath);
+  
+  // Handle CSS based on settings
   let inlineStyles = '';
-  for (const cssFile of cssFiles) {
-    try {
-      const cssContent = await fetchCSS(cssFile, assetBasePath);
-      if (cssContent) {
-        inlineStyles += `<style>${cssContent}</style>\n`;
-        console.log(`✓ Inlined CSS: ${cssFile}`);
-      } else {
-        console.error(`✗ Failed to load CSS: ${cssFile}`);
+  if (cssMode === 'embed') {
+    // Fetch and inline CSS files
+    const cssFiles = [
+      'assets/css/style.css',
+      'assets/css/bootstrap.min.css'
+    ];
+    
+    for (const cssFile of cssFiles) {
+      try {
+        const cssContent = await fetchCSS(cssFile, assetBasePath);
+        if (cssContent) {
+          inlineStyles += `<style>${cssContent}</style>\n`;
+          console.log(`✓ Inlined CSS: ${cssFile}`);
+        } else {
+          console.error(`✗ Failed to load CSS: ${cssFile}`);
+        }
+      } catch (error) {
+        console.error(`✗ Error loading CSS ${cssFile}:`, error);
       }
-    } catch (error) {
-      console.error(`✗ Error loading CSS ${cssFile}:`, error);
-      // Continue without this CSS file
+    }
+  } else {
+    // Link mode - update CSS paths
+    if (assetBasePath) {
+      baseTemplate = baseTemplate.replace(
+        /<link[^>]*href=["'](assets\/css\/[^"']+)["']/gi,
+        `<link rel="stylesheet" type="text/css" href="${assetBasePath}/$1"`
+      );
     }
   }
   
-  // Fetch and inline JS files
-  const jsFiles = [
-    'assets/scripts/main.js'
-  ];
-  
+  // Handle JS based on settings
   let inlineScripts = '';
-  for (const jsFile of jsFiles) {
-    try {
-      const jsContent = await fetchJS(jsFile, assetBasePath);
-      if (jsContent) {
-        inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
-        console.log(`✓ Inlined JS: ${jsFile}`);
-      } else {
-        console.error(`✗ Failed to load JS: ${jsFile}`);
+  if (jsMode === 'embed') {
+    // Fetch and inline JS files
+    const jsFiles = [
+      'assets/scripts/main.js'
+    ];
+    
+    for (const jsFile of jsFiles) {
+      try {
+        const jsContent = await fetchJS(jsFile, assetBasePath);
+        if (jsContent) {
+          inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
+          console.log(`✓ Inlined JS: ${jsFile}`);
+        } else {
+          console.error(`✗ Failed to load JS: ${jsFile}`);
+        }
+      } catch (error) {
+        console.error(`✗ Error loading JS ${jsFile}:`, error);
       }
-    } catch (error) {
-      console.error(`✗ Error loading JS ${jsFile}:`, error);
-      // Continue without this JS file
+    }
+  } else {
+    // Link mode - update JS paths
+    if (assetBasePath) {
+      baseTemplate = baseTemplate.replace(
+        /<script[^>]*src=["'](assets\/scripts\/[^"']+)["']/gi,
+        `<script type="text/javascript" src="${assetBasePath}/$1"`
+      );
     }
   }
-  
-  // Note: We'll remove CSS/JS link tags only after successful inlining
   
   // Replace favicon with base64 data URI
   try {
@@ -806,31 +836,29 @@ async function renderPage(templateVars) {
     console.warn('Error loading logo:', error);
   }
   
-  // Inject inline styles before </head>
-  if (inlineStyles) {
+  // Inject inline styles before </head> (only if embed mode)
+  if (cssMode === 'embed' && inlineStyles) {
     // Remove CSS link tags only if we successfully inlined styles
     baseTemplate = baseTemplate.replace(/<link[^>]*href=["']?assets\/css\/[^"']+["']?[^>]*>/gi, '');
     baseTemplate = baseTemplate.replace('</head>', inlineStyles + '</head>');
     console.log('✓ Injected inline styles into <head>');
-  } else {
+  } else if (cssMode === 'embed' && !inlineStyles) {
     console.warn('⚠ No inline styles to inject - CSS files may not have loaded');
-    // Keep original link tags as fallback if inlining failed
     console.warn('⚠ Keeping original CSS link tags as fallback');
   }
   
   // Render template
   const html = new Function("return `" + baseTemplate + "`;").call(templateVars);
   
-  // Inject inline scripts before </body>
+  // Inject inline scripts before </body> (only if embed mode)
   let finalHtml = html;
-  if (inlineScripts) {
+  if (jsMode === 'embed' && inlineScripts) {
     // Remove JS script tags only if we successfully inlined scripts
     finalHtml = html.replace(/<script[^>]*src=["']?assets\/scripts\/[^"']+["']?[^>]*><\/script>/gi, '');
     finalHtml = finalHtml.replace('</body>', inlineScripts + '</body>');
     console.log('✓ Injected inline scripts before </body>');
-  } else {
+  } else if (jsMode === 'embed' && !inlineScripts) {
     console.warn('⚠ No inline scripts to inject - JS files may not have loaded');
-    // Keep original script tags as fallback if inlining failed
     console.warn('⚠ Keeping original JS script tags as fallback');
   }
   
