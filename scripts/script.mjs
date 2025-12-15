@@ -223,7 +223,10 @@ export function routeToCall(){
     break;
     case '#theme'==hash:
       hideLoadingMessage();
-      themeManager(document.getElementById('content'));
+      themeManager(document.getElementById('content')).catch(error => {
+        console.error('Error loading theme manager:', error);
+        utils.errorHandler(error);
+      });
     break;
     case '#settings'==hash:
     case '#global-settings'==hash:

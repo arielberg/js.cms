@@ -216,22 +216,42 @@ async function saveSettings() {
         
         // Upload logo if provided
         if (logoInput && logoInput.files && logoInput.files[0]) {
-            const logoBase64 = await fileToBase64(logoInput.files[0]);
+            const logoFile = logoInput.files[0];
+            const logoBase64 = await fileToBase64(logoFile);
+            // Get file extension from original filename
+            const logoExtension = logoFile.name.split('.').pop().toLowerCase();
+            const logoFileName = `logo.${logoExtension}`;
+            const logoPath = `assets/images/${logoFileName}`;
+            
             files.push({
                 content: logoBase64,
-                filePath: 'assets/images/logo.png',
+                filePath: logoPath,
                 encoding: 'base64'
             });
+            
+            // Save logo path to appSettings
+            appSettings.Logo_Url = logoPath;
+            appSettings.Logo_FileType = logoExtension;
         }
         
         // Upload favicon if provided
         if (faviconInput && faviconInput.files && faviconInput.files[0]) {
-            const faviconBase64 = await fileToBase64(faviconInput.files[0]);
+            const faviconFile = faviconInput.files[0];
+            const faviconBase64 = await fileToBase64(faviconFile);
+            // Get file extension from original filename
+            const faviconExtension = faviconFile.name.split('.').pop().toLowerCase();
+            const faviconFileName = `favicon.${faviconExtension}`;
+            const faviconPath = `assets/images/${faviconFileName}`;
+            
             files.push({
                 content: faviconBase64,
-                filePath: 'assets/images/favicon.ico',
+                filePath: faviconPath,
                 encoding: 'base64'
             });
+            
+            // Save favicon path to appSettings
+            appSettings.Favicon_Url = faviconPath;
+            appSettings.Favicon_FileType = faviconExtension;
         }
         
         await commitFiles('Update global settings', files);

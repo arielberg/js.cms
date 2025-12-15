@@ -56,10 +56,26 @@ const themeDefinitions = {
 /**
  * Show theme management interface
  */
-export function themeManager(parentElement) {
+export async function themeManager(parentElement) {
+    // Load latest appSettings before rendering
+    try {
+        const gitApi = utils.getGlobalVariable('gitApi');
+        if (gitApi && gitApi.getFile) {
+            try {
+                const latestSettings = await gitApi.getFile('config/appSettings.json');
+                const parsedSettings = JSON.parse(latestSettings);
+                utils.setGlobalVariable('appSettings', parsedSettings);
+            } catch (error) {
+                console.warn('Could not load latest appSettings from GitHub, using cached:', error);
+            }
+        }
+    } catch (error) {
+        console.warn('Error loading appSettings for theme manager:', error);
+    }
+    
     const appSettings = utils.getGlobalVariable('appSettings') || {};
     const currentTheme = appSettings.Theme || 'default';
-    const themeColors = appSettings.ThemeColors || themeDefinitions[currentTheme].colors;
+    const themeColors = appSettings.ThemeColors || (themeDefinitions[currentTheme] ? themeDefinitions[currentTheme].colors : themeDefinitions.default.colors);
     
     const themes = Object.keys(themeDefinitions).map(key => ({
         value: key,

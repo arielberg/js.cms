@@ -6,7 +6,7 @@
         <link rel="stylesheet" type="text/css" href="assets/css/style.css">
         <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" media="all">        
         <script type="text/javascript" src="assets/scripts/main.js"></script>       
-        <link rel="icon" href="assets/images/favicon.ico" sizes="16x16">
+        <link rel="icon" href="${ this.faviconPath || 'assets/images/favicon.ico' }" sizes="16x16">
         <title>${ this.strings.siteName || 'Site' } - ${ this.pageTitle }</title>
         <style>
           /* Enhanced fallback styling to ensure a clean layout even if assets fail to load */
@@ -22,10 +22,16 @@
             line-height: 1.6;
           }
           .navbar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1030 !important;
             background: #ffffff !important;
             border-bottom: 1px solid #e5e7eb;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             min-height: 56px;
+            width: 100%;
           }
           .navbar .container {
             display: flex;
@@ -332,7 +338,7 @@
     ${ this.blocks_header || '' }
     <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
       <div class="container">
-        <a class="navbar-brand" href="/"><img width="120px" src="assets/images/logo.png" alt="Logo" /></a>
+        <a class="navbar-brand" href="/"><img width="120px" src="${ this.logoPath || 'assets/images/logo.png' }" alt="Logo" /></a>
         <button class="navbar-toggler" type="button" onclick="document.getElementById('mainMenu').classList.toggle('show')" aria-controls="mainMenu" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
           <span class="navbar-toggler-icon"></span>

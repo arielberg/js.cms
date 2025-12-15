@@ -454,6 +454,10 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
   const themeClass = `theme-${siteTheme}`;
   const finalPageClass = `${pageClass} ${themeClass}`;
   
+  // Get logo and favicon paths from appSettings
+  const logoPath = appSettings.Logo_Url || 'assets/images/logo.png';
+  const faviconPath = appSettings.Favicon_Url || 'assets/images/favicon.ico';
+  
   return {
     strings: strings,
     menu_main: menuHtml,
@@ -464,6 +468,8 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
     pageClass: finalPageClass,
     theme: siteTheme,
     themeColors: themeColors,
+    logoPath: logoPath,
+    faviconPath: faviconPath,
     content: ''
   };
 }
@@ -840,28 +846,38 @@ async function renderPage(templateVars) {
     }
   }
   
-  // Replace favicon with base64 data URI
+  // Replace favicon - use path from templateVars (which comes from appSettings)
   try {
-    const faviconDataURI = await fetchAsDataURI('assets/images/favicon.ico', assetBasePath);
+    const faviconPath = templateVars.faviconPath || 'assets/images/favicon.ico';
+    const faviconDataURI = await fetchAsDataURI(faviconPath, assetBasePath);
     if (faviconDataURI) {
-      baseTemplate = baseTemplate.replace(/<link[^>]*href="assets\/images\/favicon\.ico"[^>]*>/g, 
+      baseTemplate = baseTemplate.replace(/<link[^>]*href=["']?[^"']*favicon[^"']*["']?[^>]*>/gi, 
         `<link rel="icon" href="${faviconDataURI}" sizes="16x16">`);
-      console.log('Inlined favicon');
+      console.log('Inlined favicon from:', faviconPath);
     } else if (assetBasePath) {
-      baseTemplate = baseTemplate.replace(/href=["']assets\/images\/favicon\.ico["']/gi, `href="${assetBasePath}/assets/images/favicon.ico"`);
+      const fullFaviconPath = assetBasePath.endsWith('/') ? `${assetBasePath}${faviconPath}` : `${assetBasePath}/${faviconPath}`;
+      baseTemplate = baseTemplate.replace(/href=["']?[^"']*favicon[^"']*["']?/gi, `href="${fullFaviconPath}"`);
+    } else {
+      // Use the path from templateVars directly
+      baseTemplate = baseTemplate.replace(/href=["']?[^"']*favicon[^"']*["']?/gi, `href="${faviconPath}"`);
     }
   } catch (error) {
     console.warn('Error loading favicon:', error);
   }
   
-  // Replace logo image with base64 data URI
+  // Replace logo image - use path from templateVars (which comes from appSettings)
   try {
-    const logoDataURI = await fetchAsDataURI('assets/images/logo.png', assetBasePath);
+    const logoPath = templateVars.logoPath || 'assets/images/logo.png';
+    const logoDataURI = await fetchAsDataURI(logoPath, assetBasePath);
     if (logoDataURI) {
-      baseTemplate = baseTemplate.replace(/src="assets\/images\/logo\.png"/g, `src="${logoDataURI}"`);
-      console.log('Inlined logo');
+      baseTemplate = baseTemplate.replace(/src=["']?[^"']*logo[^"']*["']?/gi, `src="${logoDataURI}"`);
+      console.log('Inlined logo from:', logoPath);
     } else if (assetBasePath) {
-      baseTemplate = baseTemplate.replace(/src=["']assets\/images\/logo\.png["']/gi, `src="${assetBasePath}/assets/images/logo.png"`);
+      const fullLogoPath = assetBasePath.endsWith('/') ? `${assetBasePath}${logoPath}` : `${assetBasePath}/${logoPath}`;
+      baseTemplate = baseTemplate.replace(/src=["']?[^"']*logo[^"']*["']?/gi, `src="${fullLogoPath}"`);
+    } else {
+      // Use the path from templateVars directly
+      baseTemplate = baseTemplate.replace(/src=["']?[^"']*logo[^"']*["']?/gi, `src="${logoPath}"`);
     }
   } catch (error) {
     console.warn('Error loading logo:', error);
