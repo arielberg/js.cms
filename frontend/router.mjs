@@ -495,63 +495,162 @@ async function injectBlocks(templateVars, pageType, contentType) {
 }
 
 /**
- * Fetch and convert file to base64 data URI
+ * Fetch and convert file to base64 data URI with multiple path fallbacks
  */
 async function fetchAsDataURI(filePath, basePath = '') {
-  const fullPath = basePath ? `${basePath}/${filePath}` : `/${filePath}`;
-  try {
-    const response = await fetch(fullPath);
-    if (!response.ok) {
-      console.warn(`Failed to fetch ${fullPath}: ${response.status}`);
-      return null;
-    }
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    console.warn(`Error fetching ${fullPath}:`, error);
-    return null;
+  const pathsToTry = [];
+  
+  // Add base path version
+  if (basePath) {
+    pathsToTry.push(`${basePath}/${filePath}`);
   }
+  
+  // Add root path version
+  pathsToTry.push(`/${filePath}`);
+  
+  // Add relative path version
+  pathsToTry.push(filePath);
+  
+  // Try GitHub API as fallback
+  const gitApi = utils.getGlobalVariable('gitApi');
+  
+  for (const path of pathsToTry) {
+    try {
+      const response = await fetch(path);
+      if (response.ok) {
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            console.log(`Successfully loaded image as data URI from: ${path}`);
+            resolve(reader.result);
+          };
+          reader.onerror = () => {
+            console.warn(`FileReader error for ${path}`);
+            resolve(null);
+          };
+          reader.readAsDataURL(blob);
+        });
+      }
+    } catch (error) {
+      // Continue to next path
+      continue;
+    }
+  }
+  
+  // Try GitHub API if available (for images, we'd need to convert base64 from API)
+  if (gitApi && gitApi.getFile) {
+    try {
+      // Note: GitHub API returns base64 encoded content for binary files
+      const content = await gitApi.getFile(filePath);
+      // GitHub API returns base64 content, but we need to check the format
+      // For now, skip GitHub API for images as it's more complex
+      console.warn(`GitHub API image loading not fully implemented for ${filePath}`);
+    } catch (apiError) {
+      console.warn(`GitHub API fetch failed for image ${filePath}:`, apiError);
+    }
+  }
+  
+  console.warn(`Failed to fetch image ${filePath} from all attempted paths`);
+  return null;
 }
 
 /**
- * Fetch CSS file content
+ * Fetch CSS file content with multiple path fallbacks
  */
 async function fetchCSS(filePath, basePath = '') {
-  const fullPath = basePath ? `${basePath}/${filePath}` : `/${filePath}`;
-  try {
-    const response = await fetch(fullPath);
-    if (!response.ok) {
-      console.warn(`Failed to fetch CSS ${fullPath}: ${response.status}`);
-      return null;
-    }
-    return await response.text();
-  } catch (error) {
-    console.warn(`Error fetching CSS ${fullPath}:`, error);
-    return null;
+  const pathsToTry = [];
+  
+  // Add base path version
+  if (basePath) {
+    pathsToTry.push(`${basePath}/${filePath}`);
   }
+  
+  // Add root path version
+  pathsToTry.push(`/${filePath}`);
+  
+  // Add relative path version
+  pathsToTry.push(filePath);
+  
+  // Try GitHub API as fallback
+  const gitApi = utils.getGlobalVariable('gitApi');
+  
+  for (const path of pathsToTry) {
+    try {
+      const response = await fetch(path);
+      if (response.ok) {
+        const content = await response.text();
+        console.log(`Successfully loaded CSS from: ${path}`);
+        return content;
+      }
+    } catch (error) {
+      // Continue to next path
+      continue;
+    }
+  }
+  
+  // Try GitHub API if available
+  if (gitApi && gitApi.getFile) {
+    try {
+      const content = await gitApi.getFile(filePath);
+      console.log(`Successfully loaded CSS from GitHub API: ${filePath}`);
+      return content;
+    } catch (apiError) {
+      console.warn(`GitHub API fetch failed for CSS ${filePath}:`, apiError);
+    }
+  }
+  
+  console.warn(`Failed to fetch CSS ${filePath} from all attempted paths`);
+  return null;
 }
 
 /**
- * Fetch JS file content
+ * Fetch JS file content with multiple path fallbacks
  */
 async function fetchJS(filePath, basePath = '') {
-  const fullPath = basePath ? `${basePath}/${filePath}` : `/${filePath}`;
-  try {
-    const response = await fetch(fullPath);
-    if (!response.ok) {
-      console.warn(`Failed to fetch JS ${fullPath}: ${response.status}`);
-      return null;
-    }
-    return await response.text();
-  } catch (error) {
-    console.warn(`Error fetching JS ${fullPath}:`, error);
-    return null;
+  const pathsToTry = [];
+  
+  // Add base path version
+  if (basePath) {
+    pathsToTry.push(`${basePath}/${filePath}`);
   }
+  
+  // Add root path version
+  pathsToTry.push(`/${filePath}`);
+  
+  // Add relative path version
+  pathsToTry.push(filePath);
+  
+  // Try GitHub API as fallback
+  const gitApi = utils.getGlobalVariable('gitApi');
+  
+  for (const path of pathsToTry) {
+    try {
+      const response = await fetch(path);
+      if (response.ok) {
+        const content = await response.text();
+        console.log(`Successfully loaded JS from: ${path}`);
+        return content;
+      }
+    } catch (error) {
+      // Continue to next path
+      continue;
+    }
+  }
+  
+  // Try GitHub API if available
+  if (gitApi && gitApi.getFile) {
+    try {
+      const content = await gitApi.getFile(filePath);
+      console.log(`Successfully loaded JS from GitHub API: ${filePath}`);
+      return content;
+    } catch (apiError) {
+      console.warn(`GitHub API fetch failed for JS ${filePath}:`, apiError);
+    }
+  }
+  
+  console.warn(`Failed to fetch JS ${filePath} from all attempted paths`);
+  return null;
 }
 
 /**
@@ -651,12 +750,12 @@ async function renderPage(templateVars) {
       const cssContent = await fetchCSS(cssFile, assetBasePath);
       if (cssContent) {
         inlineStyles += `<style>${cssContent}</style>\n`;
-        console.log(`Inlined CSS: ${cssFile}`);
+        console.log(`✓ Inlined CSS: ${cssFile}`);
       } else {
-        console.warn(`Failed to load CSS: ${cssFile}, continuing without it`);
+        console.error(`✗ Failed to load CSS: ${cssFile}`);
       }
     } catch (error) {
-      console.warn(`Error loading CSS ${cssFile}:`, error);
+      console.error(`✗ Error loading CSS ${cssFile}:`, error);
       // Continue without this CSS file
     }
   }
@@ -672,21 +771,17 @@ async function renderPage(templateVars) {
       const jsContent = await fetchJS(jsFile, assetBasePath);
       if (jsContent) {
         inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
-        console.log(`Inlined JS: ${jsFile}`);
+        console.log(`✓ Inlined JS: ${jsFile}`);
       } else {
-        console.warn(`Failed to load JS: ${jsFile}, continuing without it`);
+        console.error(`✗ Failed to load JS: ${jsFile}`);
       }
     } catch (error) {
-      console.warn(`Error loading JS ${jsFile}:`, error);
+      console.error(`✗ Error loading JS ${jsFile}:`, error);
       // Continue without this JS file
     }
   }
   
-  // Replace CSS link tags with inline styles
-  baseTemplate = baseTemplate.replace(/<link[^>]*href="assets\/css\/[^"]+"[^>]*>/g, '');
-  
-  // Replace JS script tags with inline scripts
-  baseTemplate = baseTemplate.replace(/<script[^>]*src="assets\/scripts\/[^"]+"[^>]*><\/script>/g, '');
+  // Note: We'll remove CSS/JS link tags only after successful inlining
   
   // Replace favicon with base64 data URI
   try {
@@ -713,7 +808,14 @@ async function renderPage(templateVars) {
   
   // Inject inline styles before </head>
   if (inlineStyles) {
+    // Remove CSS link tags only if we successfully inlined styles
+    baseTemplate = baseTemplate.replace(/<link[^>]*href=["']?assets\/css\/[^"']+["']?[^>]*>/gi, '');
     baseTemplate = baseTemplate.replace('</head>', inlineStyles + '</head>');
+    console.log('✓ Injected inline styles into <head>');
+  } else {
+    console.warn('⚠ No inline styles to inject - CSS files may not have loaded');
+    // Keep original link tags as fallback if inlining failed
+    console.warn('⚠ Keeping original CSS link tags as fallback');
   }
   
   // Render template
@@ -722,13 +824,27 @@ async function renderPage(templateVars) {
   // Inject inline scripts before </body>
   let finalHtml = html;
   if (inlineScripts) {
-    finalHtml = html.replace('</body>', inlineScripts + '</body>');
+    // Remove JS script tags only if we successfully inlined scripts
+    finalHtml = html.replace(/<script[^>]*src=["']?assets\/scripts\/[^"']+["']?[^>]*><\/script>/gi, '');
+    finalHtml = finalHtml.replace('</body>', inlineScripts + '</body>');
+    console.log('✓ Injected inline scripts before </body>');
+  } else {
+    console.warn('⚠ No inline scripts to inject - JS files may not have loaded');
+    // Keep original script tags as fallback if inlining failed
+    console.warn('⚠ Keeping original JS script tags as fallback');
   }
   
   // Replace document content
   document.open();
   document.write(finalHtml);
   document.close();
+  
+  console.log('✓ Page rendered with inlined assets');
+  
+  // Debug: Check if styles are actually in the document
+  const styleTags = document.querySelectorAll('style');
+  const scriptTags = document.querySelectorAll('script[type="text/javascript"]');
+  console.log(`Debug: Found ${styleTags.length} <style> tags and ${scriptTags.length} inline script tags in document`);
   
   // Execute any inline scripts that were added
   // (scripts in the template will execute automatically when written to document)
