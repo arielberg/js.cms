@@ -15,6 +15,162 @@ function getBasePath() {
     }
   }
   return '';
+}
+
+/**
+ * Fetch CSS file content with multiple path fallbacks
+ */
+async function fetchCSS(filePath, basePath = '') {
+  const pathsToTry = [];
+  
+  // Add base path version
+  if (basePath) {
+    pathsToTry.push(`${basePath}/${filePath}`);
+  }
+  
+  // Add root path version
+  pathsToTry.push(`/${filePath}`);
+  
+  // Add relative path version
+  pathsToTry.push(filePath);
+  
+  // Try GitHub API as fallback
+  const APIconnect = utils.getGlobalVariable('gitApi');
+  
+  for (const path of pathsToTry) {
+    try {
+      const response = await fetch(path);
+      if (response.ok) {
+        const content = await response.text();
+        console.log(`Successfully loaded CSS from: ${path}`);
+        return content;
+      }
+    } catch (error) {
+      // Continue to next path
+      continue;
+    }
+  }
+  
+  // Try GitHub API if available
+  if (APIconnect && APIconnect.getFile) {
+    try {
+      const content = await APIconnect.getFile(filePath);
+      console.log(`Successfully loaded CSS from GitHub API: ${filePath}`);
+      return content;
+    } catch (apiError) {
+      console.warn(`GitHub API fetch failed for CSS ${filePath}:`, apiError);
+    }
+  }
+  
+  console.warn(`Failed to fetch CSS ${filePath} from all attempted paths`);
+  return null;
+}
+
+/**
+ * Fetch JS file content with multiple path fallbacks
+ */
+async function fetchJS(filePath, basePath = '') {
+  const pathsToTry = [];
+  
+  // Add base path version
+  if (basePath) {
+    pathsToTry.push(`${basePath}/${filePath}`);
+  }
+  
+  // Add root path version
+  pathsToTry.push(`/${filePath}`);
+  
+  // Add relative path version
+  pathsToTry.push(filePath);
+  
+  // Try GitHub API as fallback
+  const APIconnect = utils.getGlobalVariable('gitApi');
+  
+  for (const path of pathsToTry) {
+    try {
+      const response = await fetch(path);
+      if (response.ok) {
+        const content = await response.text();
+        console.log(`Successfully loaded JS from: ${path}`);
+        return content;
+      }
+    } catch (error) {
+      // Continue to next path
+      continue;
+    }
+  }
+  
+  // Try GitHub API if available
+  if (APIconnect && APIconnect.getFile) {
+    try {
+      const content = await APIconnect.getFile(filePath);
+      console.log(`Successfully loaded JS from GitHub API: ${filePath}`);
+      return content;
+    } catch (apiError) {
+      console.warn(`GitHub API fetch failed for JS ${filePath}:`, apiError);
+    }
+  }
+  
+  console.warn(`Failed to fetch JS ${filePath} from all attempted paths`);
+  return null;
+}
+
+/**
+ * Inline CSS and JS assets into HTML content
+ */
+async function inlineAssets(htmlContent, basePath = '') {
+  let finalHtml = htmlContent;
+  
+  // Fetch and inline CSS files
+  const cssFiles = [
+    'assets/css/style.css',
+    'assets/css/bootstrap.min.css'
+  ];
+  
+  let inlineStyles = '';
+  for (const cssFile of cssFiles) {
+    try {
+      const cssContent = await fetchCSS(cssFile, basePath);
+      if (cssContent) {
+        inlineStyles += `<style>${cssContent}</style>\n`;
+        console.log(`✓ Inlined CSS: ${cssFile}`);
+      }
+    } catch (error) {
+      console.warn(`Error loading CSS ${cssFile}:`, error);
+    }
+  }
+  
+  // Fetch and inline JS files
+  const jsFiles = [
+    'assets/scripts/main.js'
+  ];
+  
+  let inlineScripts = '';
+  for (const jsFile of jsFiles) {
+    try {
+      const jsContent = await fetchJS(jsFile, basePath);
+      if (jsContent) {
+        inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
+        console.log(`✓ Inlined JS: ${jsFile}`);
+      }
+    } catch (error) {
+      console.warn(`Error loading JS ${jsFile}:`, error);
+    }
+  }
+  
+  // Remove CSS link tags only if we successfully inlined styles
+  if (inlineStyles) {
+    finalHtml = finalHtml.replace(/<link[^>]*href=["']?assets\/css\/[^"']+["']?[^>]*>/gi, '');
+    finalHtml = finalHtml.replace('</head>', inlineStyles + '</head>');
+  }
+  
+  // Remove JS script tags only if we successfully inlined scripts
+  if (inlineScripts) {
+    finalHtml = finalHtml.replace(/<script[^>]*src=["']?assets\/scripts\/[^"']+["']?[^>]*><\/script>/gi, '');
+    finalHtml = finalHtml.replace('</body>', inlineScripts + '</body>');
+  }
+  
+  return finalHtml;
 } 
 
 /**
@@ -256,6 +412,7 @@ export function contentItem ( contentType , ItemId ) {
                                     .then( menu => JSON.parse(menu) );
                                 })
                                 .then( jsonMenu => {
+                const basePath = getBasePath();
                 return Promise.all( languages.map( language => {
 
                   let menuHtml  = renderMenu( jsonMenu[language] );
@@ -283,11 +440,17 @@ export function contentItem ( contentType , ItemId ) {
                     templateVars.content = '';
                   }
                   
-                  return {
-                    "content":  new Function("return `" + baseTemplate + "`;").call(templateVars),
-                    "filePath": ( isDefaultLanguage ? '': language+'/' )+editItemObj.getURL(false)+'/index.html',
-                    "encoding": "utf-8" 
-                  }
+                  // Render template
+                  let htmlContent = new Function("return `" + baseTemplate + "`;").call(templateVars);
+                  
+                  // Inline CSS and JS assets
+                  return inlineAssets(htmlContent, basePath).then(inlinedHtml => {
+                    return {
+                      "content": inlinedHtml,
+                      "filePath": ( isDefaultLanguage ? '': language+'/' )+editItemObj.getURL(false)+'/index.html',
+                      "encoding": "utf-8" 
+                    };
+                  });
                 }));
               })
             }) 

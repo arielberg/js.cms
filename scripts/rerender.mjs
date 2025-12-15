@@ -2,6 +2,125 @@ import * as utils from './utils.js';
 import { commitFiles, contentItemForm, contentList , contentItemLoader, renderMenu} from './contentItem.mjs';
 
 /**
+ * Fetch CSS file content with multiple path fallbacks
+ */
+async function fetchCSS(filePath, basePath = '') {
+  const pathsToTry = [];
+  
+  if (basePath) {
+    pathsToTry.push(`${basePath}/${filePath}`);
+  }
+  pathsToTry.push(`/${filePath}`);
+  pathsToTry.push(filePath);
+  
+  const APIconnect = utils.getGlobalVariable('gitApi');
+  
+  for (const path of pathsToTry) {
+    try {
+      const response = await fetch(path);
+      if (response.ok) {
+        return await response.text();
+      }
+    } catch (error) {
+      continue;
+    }
+  }
+  
+  if (APIconnect && APIconnect.getFile) {
+    try {
+      return await APIconnect.getFile(filePath);
+    } catch (apiError) {
+      console.warn(`GitHub API fetch failed for CSS ${filePath}:`, apiError);
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Fetch JS file content with multiple path fallbacks
+ */
+async function fetchJS(filePath, basePath = '') {
+  const pathsToTry = [];
+  
+  if (basePath) {
+    pathsToTry.push(`${basePath}/${filePath}`);
+  }
+  pathsToTry.push(`/${filePath}`);
+  pathsToTry.push(filePath);
+  
+  const APIconnect = utils.getGlobalVariable('gitApi');
+  
+  for (const path of pathsToTry) {
+    try {
+      const response = await fetch(path);
+      if (response.ok) {
+        return await response.text();
+      }
+    } catch (error) {
+      continue;
+    }
+  }
+  
+  if (APIconnect && APIconnect.getFile) {
+    try {
+      return await APIconnect.getFile(filePath);
+    } catch (apiError) {
+      console.warn(`GitHub API fetch failed for JS ${filePath}:`, apiError);
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Inline CSS and JS assets into HTML content
+ */
+async function inlineAssets(htmlContent, basePath = '') {
+  let finalHtml = htmlContent;
+  
+  const cssFiles = ['assets/css/style.css', 'assets/css/bootstrap.min.css'];
+  let inlineStyles = '';
+  
+  for (const cssFile of cssFiles) {
+    try {
+      const cssContent = await fetchCSS(cssFile, basePath);
+      if (cssContent) {
+        inlineStyles += `<style>${cssContent}</style>\n`;
+      }
+    } catch (error) {
+      console.warn(`Error loading CSS ${cssFile}:`, error);
+    }
+  }
+  
+  const jsFiles = ['assets/scripts/main.js'];
+  let inlineScripts = '';
+  
+  for (const jsFile of jsFiles) {
+    try {
+      const jsContent = await fetchJS(jsFile, basePath);
+      if (jsContent) {
+        inlineScripts += `<script type="text/javascript">${jsContent}</script>\n`;
+      }
+    } catch (error) {
+      console.warn(`Error loading JS ${jsFile}:`, error);
+    }
+  }
+  
+  if (inlineStyles) {
+    finalHtml = finalHtml.replace(/<link[^>]*href=["']?assets\/css\/[^"']+["']?[^>]*>/gi, '');
+    finalHtml = finalHtml.replace('</head>', inlineStyles + '</head>');
+  }
+  
+  if (inlineScripts) {
+    finalHtml = finalHtml.replace(/<script[^>]*src=["']?assets\/scripts\/[^"']+["']?[^>]*><\/script>/gi, '');
+    finalHtml = finalHtml.replace('</body>', inlineScripts + '</body>');
+  }
+  
+  return finalHtml;
+}
+
+/**
  * Get base path for GitHub Pages (e.g., /test2)
  */
 function getBasePath() {
@@ -192,11 +311,17 @@ export function rederCustomPages() {
                                             templateVars.pageTitle = templateData.title;
                                             templateVars.content = new Function("return `" + template + "`;").call(templateVars); 
 
-                                            return ({
-                                                "content":  new Function("return `" + pageWrapper + "`;").call(templateVars),
-                                                "filePath": linksPrefix + templateData.url,
-                                                "encoding": "utf-8" 
-                                            })
+                                            // Render template
+                                            let htmlContent = new Function("return `" + pageWrapper + "`;").call(templateVars);
+                                            
+                                            // Inline CSS and JS assets
+                                            return inlineAssets(htmlContent, basePath).then(inlinedHtml => {
+                                                return {
+                                                    "content": inlinedHtml,
+                                                    "filePath": linksPrefix + templateData.url,
+                                                    "encoding": "utf-8" 
+                                                };
+                                            });
                                         })
                                 })
                             )   
