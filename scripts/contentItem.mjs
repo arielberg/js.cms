@@ -322,17 +322,21 @@ export function contentItem ( contentType , ItemId ) {
     switch ( fieldData.type ) {
       case "image":
         if (/^https?:\/\//i.test(value)) {
-          fieldContent = `<img src="${value}" />`;
+          fieldContent = `<img src="${value}" alt="${fieldData.label || ''}" class="img-fluid" />`;
         } else {
-          fieldContent = `<img src="${prefix}${normalizedPath}" />`;
+          fieldContent = `<img src="${prefix}${normalizedPath}" alt="${fieldData.label || ''}" class="img-fluid" />`;
         }
       break;
       case "file":
         if (/^https?:\/\//i.test(value)) {
-          fieldContent = `<a href="${value}" >` + utils.t('viewFile', language) + '</a>';
+          fieldContent = `<a href="${value}" class="btn btn-outline-primary" target="_blank">` + (utils.t('viewFile', language) || 'View File') + '</a>';
         } else {
-          fieldContent = `<a href="${prefix}${normalizedPath}" >` + utils.t('viewFile', language) + '</a>';
+          fieldContent = `<a href="${prefix}${normalizedPath}" class="btn btn-outline-primary" target="_blank">` + (utils.t('viewFile', language) || 'View File') + '</a>';
         }
+      break;
+      case "wysiwyg":
+        // WYSIWYG content is already HTML, just wrap it
+        fieldContent = value;
       break;
     }
     return `<div class='field field-${fieldData.type} f-${fieldData.name}'>${fieldContent}</div>`;
@@ -582,33 +586,64 @@ export async function contentItemLoader ( contentType , ItemId ) {
    */
   export function renderMenu( jsonMenu, basePath = '' ) {
     let menuHtml = '';
-    if( jsonMenu ) {
-      menuHtml = `<ul class='navbar-nav'>`;
-      jsonMenu.forEach( menuItem => {
-          const url = menuItem.url || '';
-          const fullUrl = basePath ? `${basePath}/${url}` : (url ? `/${url}` : '/');
-          
-          if ( menuItem.subItems ) { 
-            menuHtml += `<li class='nav-item dropdown'>
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown${menuItem.label.replace(/\s+/g, '')}" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">${ menuItem.label }</a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdown${menuItem.label.replace(/\s+/g, '')}">
-                  ${ menuItem.subItems
-                      .map( menuSubItem => {
-                        const subUrl = menuSubItem.url || '';
-                        const subFullUrl = basePath ? `${basePath}/${subUrl}` : (subUrl ? `/${subUrl}` : '/');
-                        return `<a class="dropdown-item" href="${subFullUrl}">${ menuSubItem.label }</a>`;
-                      })
-                      .join('') }
-              </div>
-            </li>\n`;
-          }
-          else { 
-            menuHtml += `<li class="nav-item"><a class="nav-link" href="${fullUrl}">${ menuItem.label }</a></li>\n`;
-          }
-      });
-      
-      menuHtml += `</ul>`;
+    
+    // Ensure jsonMenu is an array
+    if (!jsonMenu || !Array.isArray(jsonMenu) || jsonMenu.length === 0) {
+      console.warn('renderMenu: Invalid or empty menu data');
+      return '<ul class="navbar-nav"><li class="nav-item"><a class="nav-link" href="/">Home</a></li></ul>';
     }
+    
+    menuHtml = `<ul class='navbar-nav'>`;
+    jsonMenu.forEach( menuItem => {
+      if (!menuItem || !menuItem.label) {
+        console.warn('renderMenu: Skipping invalid menu item:', menuItem);
+        return;
+      }
+      
+      const url = menuItem.url || '';
+      // Fix URL: if basePath ends with /, don't add another /
+      let fullUrl = '/';
+      if (url) {
+        if (basePath) {
+          fullUrl = basePath.endsWith('/') ? `${basePath}${url}` : `${basePath}/${url}`;
+        } else {
+          fullUrl = url.startsWith('/') ? url : `/${url}`;
+        }
+      } else if (basePath) {
+        fullUrl = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+      }
+      
+      if ( menuItem.subItems && Array.isArray(menuItem.subItems) && menuItem.subItems.length > 0) { 
+        menuHtml += `<li class='nav-item dropdown'>
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown${menuItem.label.replace(/\s+/g, '')}" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">${ menuItem.label }</a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown${menuItem.label.replace(/\s+/g, '')}">
+              ${ menuItem.subItems
+                  .map( menuSubItem => {
+                    if (!menuSubItem || !menuSubItem.label) return '';
+                    const subUrl = menuSubItem.url || '';
+                    let subFullUrl = '/';
+                    if (subUrl) {
+                      if (basePath) {
+                        subFullUrl = basePath.endsWith('/') ? `${basePath}${subUrl}` : `${basePath}/${subUrl}`;
+                      } else {
+                        subFullUrl = subUrl.startsWith('/') ? subUrl : `/${subUrl}`;
+                      }
+                    } else if (basePath) {
+                      subFullUrl = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath;
+                    }
+                    return `<a class="dropdown-item" href="${subFullUrl}">${ menuSubItem.label }</a>`;
+                  })
+                  .filter(item => item !== '')
+                  .join('') }
+          </div>
+        </li>\n`;
+      }
+      else { 
+        menuHtml += `<li class="nav-item"><a class="nav-link" href="${fullUrl}">${ menuItem.label }</a></li>\n`;
+      }
+    });
+    
+    menuHtml += `</ul>`;
     return menuHtml;
   }
 

@@ -7,47 +7,344 @@
         <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css" media="all">        
         <script type="text/javascript" src="assets/scripts/main.js"></script>       
         <link rel="icon" href="assets/images/favicon.ico" sizes="16x16">
-        <title>${ this.strings.siteName } - ${ this.pageTitle }</title>
+        <title>${ this.strings.siteName || 'Site' } - ${ this.pageTitle }</title>
         <style>
-          /* Minimal fallback styling to ensure a clean layout even if assets fail to load */
+          /* Enhanced fallback styling to ensure a clean layout even if assets fail to load */
+          * {
+            box-sizing: border-box;
+          }
           body {
             margin: 0;
-            padding-top: 72px;
+            padding-top: 76px;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background: #f8fafc;
             color: #111827;
+            line-height: 1.6;
           }
           .navbar {
-            background: #ffffff;
+            background: #ffffff !important;
             border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-height: 56px;
           }
-          .navbar .nav-link { color: #111827; }
-          .navbar .nav-link:hover { color: #2563eb; }
-          .navbar-brand img { max-height: 48px; }
-          .page-wrapper { padding: 24px 16px; }
-          .starter-template { padding: 16px 0; }
-          .container { max-width: 1140px; margin: 0 auto; }
-          a { color: #2563eb; text-decoration: none; }
-          a:hover { text-decoration: underline; }
-          footer { margin-top: 32px; padding: 16px 0; color: #6b7280; border-top: 1px solid #e5e7eb; }
+          .navbar .container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 15px;
+          }
+          .navbar-brand {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            margin-right: 20px;
+          }
+          .navbar-brand img {
+            max-height: 48px;
+            width: auto;
+          }
+          .navbar-toggler {
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 4px 8px;
+            background: transparent;
+            cursor: pointer;
+            display: none;
+          }
+          .navbar-toggler-icon {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: #333;
+            margin: 4px 0;
+            transition: all 0.3s;
+          }
+          .navbar-nav {
+            display: flex;
+            flex-direction: row;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            align-items: center;
+          }
+          .nav-item {
+            margin: 0 8px;
+          }
+          .nav-link {
+            color: #111827 !important;
+            text-decoration: none;
+            padding: 8px 12px;
+            display: block;
+            transition: color 0.2s;
+            font-weight: 500;
+          }
+          .nav-link:hover {
+            color: #2563eb !important;
+          }
+          .navbar-collapse {
+            display: flex;
+            flex-grow: 1;
+            align-items: center;
+            justify-content: space-between;
+          }
+          .form-inline {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+          }
+          .form-control {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 8px;
+          }
+          .btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+          }
+          .btn:hover {
+            background: #0056b3;
+          }
+          .btn-outline-success {
+            background: transparent;
+            color: #28a745;
+            border-color: #28a745;
+          }
+          .btn-outline-success:hover {
+            background: #28a745;
+            color: white;
+          }
+          .page-wrapper {
+            padding: 24px 16px;
+            min-height: calc(100vh - 200px);
+          }
+          .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 0 15px;
+          }
+          .starter-template {
+            padding: 24px 0;
+          }
+          .starter-template h1 {
+            color: #1e293b;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            line-height: 1.2;
+          }
+          .starter-template h2 {
+            color: #1e293b;
+            font-size: 2rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+          }
+          .starter-template h3 {
+            color: #1e293b;
+            font-size: 1.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+          }
+          .starter-template p {
+            font-size: 1.1rem;
+            color: #475569;
+            margin-bottom: 1rem;
+            line-height: 1.7;
+          }
+          .starter-template img {
+            max-width: 100%;
+            height: auto;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          }
+          .field {
+            margin-bottom: 1.5rem;
+          }
+          .field img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 1rem 0;
+          }
+          .field-image img {
+            width: 100%;
+            max-width: 800px;
+            margin: 1.5rem auto;
+            display: block;
+          }
+          .field-body {
+            line-height: 1.8;
+          }
+          .field-body p {
+            margin-bottom: 1rem;
+          }
+          .field-body ul, .field-body ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+          }
+          .field-body li {
+            margin-bottom: 0.5rem;
+          }
+          .field-body a {
+            color: #2563eb;
+            text-decoration: underline;
+          }
+          .field-body a:hover {
+            color: #1d4ed8;
+          }
+          .field-body blockquote {
+            border-left: 4px solid #2563eb;
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            color: #64748b;
+            font-style: italic;
+          }
+          .field-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+          }
+          .field-body table th,
+          .field-body table td {
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            text-align: left;
+          }
+          .field-body table th {
+            background: #f8fafc;
+            font-weight: 600;
+          }
+          a {
+            color: #2563eb;
+            text-decoration: none;
+          }
+          a:hover {
+            text-decoration: underline;
+          }
+          footer {
+            margin-top: 48px;
+            padding: 24px 16px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+            background: #ffffff;
+            text-align: center;
+          }
+          .dropdown-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-width: 200px;
+            padding: 8px 0;
+            margin-top: 4px;
+            z-index: 1000;
+          }
+          .dropdown-menu.show {
+            display: block;
+          }
+          .dropdown-item {
+            display: block;
+            padding: 8px 16px;
+            color: #111827;
+            text-decoration: none;
+          }
+          .dropdown-item:hover {
+            background: #f8fafc;
+            color: #2563eb;
+          }
+          .img-fluid {
+            max-width: 100%;
+            height: auto;
+          }
+          @media (max-width: 768px) {
+            body {
+              padding-top: 60px;
+            }
+            .navbar-toggler {
+              display: block;
+            }
+            .navbar-collapse {
+              display: none;
+              width: 100%;
+              flex-direction: column;
+              align-items: flex-start;
+            }
+            .navbar-collapse.show {
+              display: flex;
+            }
+            .navbar-nav {
+              flex-direction: column;
+              width: 100%;
+            }
+            .nav-item {
+              width: 100%;
+              margin: 0;
+            }
+            .nav-item.dropdown {
+              position: relative;
+            }
+            .dropdown-menu {
+              position: static;
+              display: none;
+              width: 100%;
+              box-shadow: none;
+              border: none;
+              border-top: 1px solid #e5e7eb;
+              margin-top: 0;
+            }
+            .dropdown-menu.show {
+              display: block;
+            }
+            .form-inline {
+              width: 100%;
+              margin: 16px 0 0 0;
+              flex-direction: column;
+            }
+            .form-control {
+              width: 100%;
+              margin-bottom: 8px;
+            }
+            .starter-template h1 {
+              font-size: 2rem;
+            }
+            .container {
+              padding: 0 12px;
+            }
+          }
         </style>
     </head>
 <body class="${ this.pageClass }" data-theme="${ this.theme || 'default' }">
   <header id="header-region">
     ${ this.blocks_header || '' }
     <nav class="navbar navbar-expand-md navbar-light bg-light fixed-top">
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#mainMenu" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>  
-      <div class="inner">
-        <a class="navbar-brand" href=""><img width="120px" src="assets/images/logo.png" /></a>
-        <div class="collapse navbar-collapse" id="mainMenu">        
-          ${ this.menu_main }
+      <div class="container">
+        <a class="navbar-brand" href="/"><img width="120px" src="assets/images/logo.png" alt="Logo" /></a>
+        <button class="navbar-toggler" type="button" onclick="document.getElementById('mainMenu').classList.toggle('show')" aria-controls="mainMenu" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainMenu">
+          ${ this.menu_main || '<ul class="navbar-nav"><li class="nav-item"><a class="nav-link" href="/">Home</a></li></ul>' }
+          <form class="form-inline my-2 my-lg-0">
+            <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+          </form>
         </div>
-        <form class="form-inline my-2 my-lg-0">
-          <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-        </form>
       </div>
     </nav>
   </header>
@@ -64,24 +361,34 @@
     </main>
   </div>
   
-  <footer id="footer-region">
+  <footer id="footer-region" class="container">
     ${ this.blocks_footer || '' }
+    <p>&copy; ${ new Date().getFullYear() } ${ this.strings.siteName || 'Site' }. All rights reserved.</p>
   </footer>
    
     <script type="text/javascript">
-      // Path fixing is now handled by the router, so this script is disabled
-      // to prevent double-fixing of paths
-      
-      // Only handle mobile menu toggle if element exists
-      const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-      if (mobileMenuToggle) {
-        mobileMenuToggle.onclick = btn => {
-          const mainMenu = document.getElementById('mainMenu');
-          if (mainMenu) {
-            mainMenu.classList.toggle("open");
+      // Bootstrap dropdown toggle (if Bootstrap JS is not loaded)
+      document.addEventListener('DOMContentLoaded', function() {
+        // Handle dropdown toggles
+        document.querySelectorAll('.dropdown-toggle').forEach(function(toggle) {
+          toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const dropdown = this.nextElementSibling;
+            if (dropdown && dropdown.classList.contains('dropdown-menu')) {
+              dropdown.classList.toggle('show');
+            }
+          });
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown-menu').forEach(function(menu) {
+              menu.classList.remove('show');
+            });
           }
-        };
-      }
+        });
+      });
   </script>
 </body>
 </html>

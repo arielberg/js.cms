@@ -413,17 +413,30 @@ async function renderCustomPageTemplate(pageData, language) {
  */
 async function getBaseTemplateVars(pageTitle, pageClass, language) {
   // Load menu
-  let menu = {};
+  let menu = [];
   try {
     const menuData = await loadJSONFile('cms-core/menus/main.json', 'cms-core/menus/main.json');
-    menu = menuData[language] || menuData[''] || [];
+    if (menuData && typeof menuData === 'object') {
+      menu = menuData[language] || menuData[''] || menuData['en'] || [];
+    }
+    if (!Array.isArray(menu)) {
+      console.warn('Menu data is not an array, converting:', menu);
+      menu = [];
+    }
   } catch (e) {
     console.warn('Could not load menu:', e);
+    menu = [];
   }
   
   // Get base path for menu URLs
   const basePath = getEffectiveBasePath() || getBasePath();
   const menuHtml = renderMenu(menu, basePath);
+  
+  // Ensure menu HTML is not empty
+  if (!menuHtml || menuHtml.trim() === '' || menuHtml === '<ul class=\'navbar-nav\'></ul>') {
+    console.warn('Menu is empty, using default menu');
+    menuHtml = '<ul class="navbar-nav"><li class="nav-item"><a class="nav-link" href="/">Home</a></li></ul>';
+  }
   
   // Build strings object
   const strings = {};
