@@ -90,10 +90,9 @@ async function loadConfiguration() {
 }
 
 /**
- * Get base path for GitHub Pages
+ * Get base path from URL (GitHub Pages)
  */
 function getBasePath() {
-  // Handle GitHub Pages paths (e.g., /test2/)
   const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
   if (githubPagesMatch) {
     const repoName = githubPagesMatch[1];
@@ -108,12 +107,30 @@ function getBasePath() {
 }
 
 /**
+ * Resolve effective base path using settings (BasePath_Mode / BasePath_Value) with URL fallback
+ */
+function getEffectiveBasePath() {
+  const urlBase = getBasePath();
+  try {
+    const settings = utils.getGlobalVariable('appSettings') || {};
+    const mode = settings.BasePath_Mode || 'auto';
+    if (mode === 'set' && settings.BasePath_Value) {
+      return settings.BasePath_Value;
+    }
+    if (mode === 'relative') return '';
+    return urlBase;
+  } catch (e) {
+    return urlBase;
+  }
+}
+
+/**
  * Load JSON file with fallback
  */
 async function loadJSONFile(primaryPath, fallbackPath) {
-  const basePath = getBasePath();
-  const primaryFullPath = basePath ? `${basePath}/${primaryPath}` : primaryPath;
-  const fallbackFullPath = basePath ? `${basePath}/${fallbackPath}` : fallbackPath;
+  const basePath = getEffectiveBasePath();
+  const primaryFullPath = basePath ? `${basePath.replace(/\/$/,'')}/${primaryPath}` : primaryPath;
+  const fallbackFullPath = basePath ? `${basePath.replace(/\/$/,'')}/${fallbackPath}` : fallbackPath;
   
   try {
     const response = await fetch(primaryFullPath);
@@ -405,7 +422,7 @@ async function getBaseTemplateVars(pageTitle, pageClass, language) {
   }
   
   // Get base path for menu URLs
-  const basePath = getBasePath();
+  const basePath = getEffectiveBasePath() || getBasePath();
   const menuHtml = renderMenu(menu, basePath);
   
   // Build strings object
@@ -659,6 +676,7 @@ async function fetchJS(filePath, basePath = '') {
 async function renderPage(templateVars) {
   // Load base template
   const basePath = getBasePath();
+  const effectiveBasePath = getEffectiveBasePath() || basePath;
   const templatePath = basePath ? `${basePath}/cms-core/templates/base.html` : 'cms-core/templates/base.html';
   
   let baseTemplate = '';
@@ -740,14 +758,10 @@ async function renderPage(templateVars) {
   const basePathMode = appSettings?.BasePath_Mode || 'auto';
   
   // Determine effective base path
-  let effectiveBasePath = basePath;
-  if (basePathMode === 'set' && appSettings?.BasePath_Value) {
-    effectiveBasePath = appSettings.BasePath_Value;
-  } else if (basePathMode === 'relative') {
-    effectiveBasePath = '';
+  let assetBasePath = effectiveBasePath || '';
+  if (assetBasePath && assetBasePath.endsWith('/')) {
+    assetBasePath = assetBasePath.slice(0, -1);
   }
-  
-  const assetBasePath = effectiveBasePath || '';
   console.log('Loading assets, mode:', { cssMode, jsMode, basePathMode }, 'basePath:', assetBasePath);
   
   // Handle CSS based on settings
@@ -820,6 +834,8 @@ async function renderPage(templateVars) {
       baseTemplate = baseTemplate.replace(/<link[^>]*href="assets\/images\/favicon\.ico"[^>]*>/g, 
         `<link rel="icon" href="${faviconDataURI}" sizes="16x16">`);
       console.log('Inlined favicon');
+    } else if (assetBasePath) {
+      baseTemplate = baseTemplate.replace(/href=["']assets\/images\/favicon\.ico["']/gi, `href="${assetBasePath}/assets/images/favicon.ico"`);
     }
   } catch (error) {
     console.warn('Error loading favicon:', error);
@@ -831,6 +847,8 @@ async function renderPage(templateVars) {
     if (logoDataURI) {
       baseTemplate = baseTemplate.replace(/src="assets\/images\/logo\.png"/g, `src="${logoDataURI}"`);
       console.log('Inlined logo');
+    } else if (assetBasePath) {
+      baseTemplate = baseTemplate.replace(/src=["']assets\/images\/logo\.png["']/gi, `src="${assetBasePath}/assets/images/logo.png"`);
     }
   } catch (error) {
     console.warn('Error loading logo:', error);

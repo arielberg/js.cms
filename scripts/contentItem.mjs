@@ -18,6 +18,24 @@ function getBasePath() {
 }
 
 /**
+ * Resolve effective base path using settings (BasePath_Mode / BasePath_Value) with URL fallback
+ */
+function getEffectiveBasePath() {
+  const urlBase = getBasePath();
+  try {
+    const settings = utils.getGlobalVariable('appSettings') || {};
+    const mode = settings.BasePath_Mode || 'auto';
+    if (mode === 'set' && settings.BasePath_Value) {
+      return settings.BasePath_Value;
+    }
+    if (mode === 'relative') return '';
+    return urlBase;
+  } catch (e) {
+    return urlBase;
+  }
+}
+
+/**
  * Fetch CSS file content with multiple path fallbacks
  */
 async function fetchCSS(filePath, basePath = '') {
@@ -314,12 +332,24 @@ export function contentItem ( contentType , ItemId ) {
     if( value == '' || !value ) return '';
 
     let fieldContent = value;
+    const effectiveBase = getEffectiveBasePath();
+    const prefix = effectiveBase ? effectiveBase.replace(/\/$/,'') + '/' : '/';
+    const normalizedPath = typeof value === 'string' ? value.replace(/^\/+/, '') : value;
+
     switch ( fieldData.type ) {
       case "image":
-        fieldContent = '<img src="/'+value+'" />';
+        if (/^https?:\/\//i.test(value)) {
+          fieldContent = `<img src="${value}" />`;
+        } else {
+          fieldContent = `<img src="${prefix}${normalizedPath}" />`;
+        }
       break;
       case "file":
-        fieldContent = '<a href="'+value+'" >' + utils.t('viewFile', language) + '</a>';
+        if (/^https?:\/\//i.test(value)) {
+          fieldContent = `<a href="${value}" >` + utils.t('viewFile', language) + '</a>';
+        } else {
+          fieldContent = `<a href="${prefix}${normalizedPath}" >` + utils.t('viewFile', language) + '</a>';
+        }
       break;
     }
     return `<div class='field field-${fieldData.type} f-${fieldData.name}'>${fieldContent}</div>`;
