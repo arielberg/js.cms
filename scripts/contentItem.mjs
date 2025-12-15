@@ -134,23 +134,6 @@ async function fetchJS(filePath, basePath = '') {
 }
 
 /**
- * Get effective base path based on settings
- */
-function getEffectiveBasePath() {
-  const appSettings = utils.getGlobalVariable('appSettings') || {};
-  const basePathMode = appSettings.BasePath_Mode || 'auto';
-  
-  if (basePathMode === 'set') {
-    return appSettings.BasePath_Value || '';
-  } else if (basePathMode === 'relative') {
-    return '';
-  } else {
-    // Auto-detect
-    return getBasePath();
-  }
-}
-
-/**
  * Inline CSS and JS assets into HTML content (respects settings)
  */
 async function inlineAssets(htmlContent, basePath = '') {
