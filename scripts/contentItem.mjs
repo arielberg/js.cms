@@ -1,39 +1,8 @@
 import * as utils from './utils.js';
 
-/**
- * Get base path for GitHub Pages (e.g., /test2)
- */
-function getBasePath() {
-  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
-  if (githubPagesMatch) {
-    const repoName = githubPagesMatch[1];
-    const currentPath = window.location.pathname;
-    if (currentPath.startsWith(`/${repoName}/`)) {
-      return `/${repoName}`;
-    } else if (currentPath === `/${repoName}`) {
-      return `/${repoName}`;
-    }
-  }
-  return '';
-}
-
-/**
- * Resolve effective base path using settings (BasePath_Mode / BasePath_Value) with URL fallback
- */
-function getEffectiveBasePath() {
-  const urlBase = getBasePath();
-  try {
-    const settings = utils.getGlobalVariable('appSettings') || {};
-    const mode = settings.BasePath_Mode || 'auto';
-    if (mode === 'set' && settings.BasePath_Value) {
-      return settings.BasePath_Value;
-    }
-    if (mode === 'relative') return '';
-    return urlBase;
-  } catch (e) {
-    return urlBase;
-  }
-}
+// Import base path functions from utils
+const getBasePath = utils.getBasePath;
+const getEffectiveBasePath = utils.getEffectiveBasePath;
 
 /**
  * Fetch CSS file content with multiple path fallbacks

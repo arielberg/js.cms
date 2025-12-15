@@ -76,19 +76,8 @@ async function fetchJS(filePath, basePath = '') {
 /**
  * Get effective base path based on settings
  */
-function getEffectiveBasePath() {
-  const appSettings = utils.getGlobalVariable('appSettings') || {};
-  const basePathMode = appSettings.BasePath_Mode || 'auto';
-  
-  if (basePathMode === 'set') {
-    return appSettings.BasePath_Value || '';
-  } else if (basePathMode === 'relative') {
-    return '';
-  } else {
-    // Auto-detect
-    return getBasePath();
-  }
-}
+// Import base path functions from utils
+const getEffectiveBasePath = utils.getEffectiveBasePath;
 
 /**
  * Inline CSS and JS assets into HTML content (respects settings)
@@ -167,17 +156,8 @@ async function inlineAssets(htmlContent, basePath = '') {
   return finalHtml;
 }
 
-/**
- * Get base path for GitHub Pages (e.g., /test2)
- */
-function getBasePath() {
-  const githubPagesMatch = window.location.href.match(/(.*)github\.io\/([^/]+)/);
-  if (githubPagesMatch) {
-    const currentPath = githubPagesMatch[0];
-    return currentPath;
-  }
-  return  window.location.protocol+'//'+window.location.host;
-} 
+// Import base path functions from utils
+const getBasePath = utils.getBasePath; 
 
 
 /**
@@ -289,10 +269,11 @@ export function rederCustomPages() {
                 });
             })
             .then( pageWrapper => {
-                const basePath = getBasePath();
+                const basePath = getBasePath() || '';
+                const basePathPrefix = basePath ? `${basePath}/` : '/';
                 return Promise.all([
                         // Try local fetch first for menus
-                        fetch(`${basePath}/cms-core/menus/main.json`)
+                        fetch(`${basePathPrefix}cms-core/menus/main.json`)
                             .then(response => {
                               if (response.ok) {
                                 return response.json();
@@ -306,13 +287,13 @@ export function rederCustomPages() {
                                 .then( menu => JSON.parse(menu) );
                             }),
                         // Try local fetch first for customPages
-                        fetch(`${basePath}/config/customPages.json`)
+                        fetch(`${basePathPrefix}config/customPages.json`)
                             .then(response => {
                               if (response.ok) {
                                 return response.json();
                               }
                               // Try cms-core defaults
-                              return fetch(`${basePath}/cms-core/config/customPages.json`)
+                              return fetch(`${basePathPrefix}cms-core/config/customPages.json`)
                                 .then(response => {
                                   if (response.ok) {
                                     return response.json();

@@ -20,6 +20,18 @@ export async function settingsManager(parentElement) {
         const basePathMode = appSettings.BasePath_Mode || 'auto'; // 'auto', 'set', or 'relative'
         const basePathValue = appSettings.BasePath_Value || '';
         
+        // Get logo and favicon paths
+        const logoPath = appSettings.Logo_Url || 'assets/images/logo.png';
+        const faviconPath = appSettings.Favicon_Url || 'assets/images/favicon.ico';
+        
+        // Use base path functions from utils
+        const effectiveBasePath = utils.getEffectiveBasePath();
+        const previewBase = effectiveBasePath || '';
+        
+        // Build preview URLs
+        const logoPreviewUrl = previewBase ? `${previewBase}/${logoPath}` : logoPath;
+        const faviconPreviewUrl = previewBase ? `${previewBase}/${faviconPath}` : faviconPath;
+        
         parentElement.innerHTML = `
         <div id="settingsManager" class="settings-manager">
             <div class="manager-header">
@@ -109,18 +121,57 @@ export async function settingsManager(parentElement) {
                         <div class="form-group">
                             <label for="logoFile">
                                 <strong>Logo</strong>
-                                <small class="text-muted d-block">Upload a logo to replace assets/images/logo.png</small>
+                                <small class="text-muted d-block">Upload a logo to replace the current logo</small>
                             </label>
-                            <input type="file" class="form-control-file" id="logoFile" accept="image/*">
+                            ${logoPath ? `
+                                <div class="mb-3 p-3 border rounded" style="background: #f8f9fa;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <strong>Current Logo:</strong>
+                                        <code class="ml-2" style="font-size: 0.85em;">${logoPath}</code>
+                                    </div>
+                                    <div class="logo-preview">
+                                        <img id="logoPreview" src="${logoPreviewUrl}" alt="Logo Preview" 
+                                             style="max-height: 80px; max-width: 200px; border: 1px solid #ddd; padding: 4px; background: white;"
+                                             onerror="this.style.display='none'; document.getElementById('logoError').style.display='block';">
+                                        <div id="logoError" style="display: none; color: #dc3545; font-size: 0.9em;">
+                                            ⚠ Logo not found at ${logoPath}
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            <input type="file" class="form-control-file" id="logoFile" accept="image/*" 
+                                   onchange="window.previewLogo(this)">
+                            <small class="form-text text-muted">
+                                Upload a new logo file. Supported formats: PNG, JPG, GIF, SVG
+                            </small>
                         </div>
                         <div class="form-group">
                             <label for="faviconFile">
                                 <strong>Favicon</strong>
-                                <small class="text-muted d-block">Upload a favicon (.ico, .png) to replace assets/images/favicon.ico</small>
+                                <small class="text-muted d-block">Upload a favicon to replace the current favicon</small>
                             </label>
-                            <input type="file" class="form-control-file" id="faviconFile" accept=".ico,.png,image/x-icon,image/png">
+                            ${faviconPath ? `
+                                <div class="mb-3 p-3 border rounded" style="background: #f8f9fa;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <strong>Current Favicon:</strong>
+                                        <code class="ml-2" style="font-size: 0.85em;">${faviconPath}</code>
+                                    </div>
+                                    <div class="favicon-preview">
+                                        <img id="faviconPreview" src="${faviconPreviewUrl}" alt="Favicon Preview" 
+                                             style="width: 32px; height: 32px; border: 1px solid #ddd; padding: 2px; background: white;"
+                                             onerror="this.style.display='none'; document.getElementById('faviconError').style.display='block';">
+                                        <div id="faviconError" style="display: none; color: #dc3545; font-size: 0.9em;">
+                                            ⚠ Favicon not found at ${faviconPath}
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            <input type="file" class="form-control-file" id="faviconFile" accept=".ico,.png,image/x-icon,image/png" 
+                                   onchange="window.previewFavicon(this)">
+                            <small class="form-text text-muted">
+                                Upload a new favicon file. Supported formats: ICO, PNG
+                            </small>
                         </div>
-                        <small class="text-muted">Files are saved to assets/images/logo.png and assets/images/favicon.ico</small>
                     </div>
                 </div>
                 
@@ -150,6 +201,10 @@ export async function settingsManager(parentElement) {
         
         // Make reset function available
         window.resetSettings = resetSettings;
+        
+        // Make preview functions available
+        window.previewLogo = previewLogo;
+        window.previewFavicon = previewFavicon;
     } catch (error) {
         console.error('Settings page render failed:', error);
         parentElement.innerHTML = `
@@ -269,6 +324,96 @@ async function saveSettings() {
         utils.errorHandler(error);
         submitButton.disabled = false;
         submitButton.textContent = originalText;
+    }
+}
+
+/**
+ * Preview logo when file is selected
+ */
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let preview = document.getElementById('logoPreview');
+            let error = document.getElementById('logoError');
+            let previewContainer = document.querySelector('.logo-preview');
+            
+            // Create preview container if it doesn't exist
+            if (!previewContainer) {
+                const logoInput = document.getElementById('logoFile');
+                const formGroup = logoInput.closest('.form-group');
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'mb-3 p-3 border rounded';
+                previewDiv.style.background = '#f8f9fa';
+                previewDiv.innerHTML = `
+                    <div class="d-flex align-items-center mb-2">
+                        <strong>New Logo Preview:</strong>
+                    </div>
+                    <div class="logo-preview">
+                        <img id="logoPreview" alt="Logo Preview" 
+                             style="max-height: 80px; max-width: 200px; border: 1px solid #ddd; padding: 4px; background: white;">
+                        <div id="logoError" style="display: none; color: #dc3545; font-size: 0.9em;"></div>
+                    </div>
+                `;
+                logoInput.parentNode.insertBefore(previewDiv, logoInput.nextSibling);
+                preview = document.getElementById('logoPreview');
+                error = document.getElementById('logoError');
+            }
+            
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            if (error) {
+                error.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+/**
+ * Preview favicon when file is selected
+ */
+function previewFavicon(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let preview = document.getElementById('faviconPreview');
+            let error = document.getElementById('faviconError');
+            let previewContainer = document.querySelector('.favicon-preview');
+            
+            // Create preview container if it doesn't exist
+            if (!previewContainer) {
+                const faviconInput = document.getElementById('faviconFile');
+                const formGroup = faviconInput.closest('.form-group');
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'mb-3 p-3 border rounded';
+                previewDiv.style.background = '#f8f9fa';
+                previewDiv.innerHTML = `
+                    <div class="d-flex align-items-center mb-2">
+                        <strong>New Favicon Preview:</strong>
+                    </div>
+                    <div class="favicon-preview">
+                        <img id="faviconPreview" alt="Favicon Preview" 
+                             style="width: 32px; height: 32px; border: 1px solid #ddd; padding: 2px; background: white;">
+                        <div id="faviconError" style="display: none; color: #dc3545; font-size: 0.9em;"></div>
+                    </div>
+                `;
+                faviconInput.parentNode.insertBefore(previewDiv, faviconInput.nextSibling);
+                preview = document.getElementById('faviconPreview');
+                error = document.getElementById('faviconError');
+            }
+            
+            if (preview) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            if (error) {
+                error.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
     }
 }
 

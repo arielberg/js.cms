@@ -92,37 +92,9 @@ async function loadConfiguration() {
 /**
  * Get base path from URL (GitHub Pages)
  */
-function getBasePath() {
-  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
-  if (githubPagesMatch) {
-    const repoName = githubPagesMatch[1];
-    const currentPath = window.location.pathname;
-    if (currentPath.startsWith(`/${repoName}/`)) {
-      return `/${repoName}`;
-    } else if (currentPath === `/${repoName}`) {
-      return `/${repoName}`;
-    }
-  }
-  return '';
-}
-
-/**
- * Resolve effective base path using settings (BasePath_Mode / BasePath_Value) with URL fallback
- */
-function getEffectiveBasePath() {
-  const urlBase = getBasePath();
-  try {
-    const settings = utils.getGlobalVariable('appSettings') || {};
-    const mode = settings.BasePath_Mode || 'auto';
-    if (mode === 'set' && settings.BasePath_Value) {
-      return settings.BasePath_Value;
-    }
-    if (mode === 'relative') return '';
-    return urlBase;
-  } catch (e) {
-    return urlBase;
-  }
-}
+// Import base path functions from utils
+const getBasePath = utils.getBasePath;
+const getEffectiveBasePath = utils.getEffectiveBasePath;
 
 /**
  * Load JSON file with fallback

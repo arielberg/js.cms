@@ -3,22 +3,10 @@
  * Checks if CMS is properly configured and redirects to setup if needed
  */
 
-/**
- * Get base path for GitHub Pages (e.g., /test2)
- */
-function getBasePath() {
-  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
-  if (githubPagesMatch) {
-    const repoName = githubPagesMatch[1];
-    const currentPath = window.location.pathname;
-    if (currentPath.startsWith(`/${repoName}/`)) {
-      return `/${repoName}`;
-    } else if (currentPath === `/${repoName}`) {
-      return `/${repoName}`;
-    }
-  }
-  return '';
-}
+import * as utils from './utils.js';
+
+// Import base path functions from utils
+const getBasePath = utils.getBasePath;
 
 /**
  * Check if appSettings is properly configured

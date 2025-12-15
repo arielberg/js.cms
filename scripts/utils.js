@@ -213,3 +213,63 @@ export let errorHandler = function( error ) {
     addMessage( error , 'danger');
   }
 }
+
+/**
+ * Get base path for GitHub Pages (e.g., /test2)
+ * Detects the repository name from the URL when on GitHub Pages
+ */
+export let getBasePath = function() {
+  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
+  if (githubPagesMatch) {
+    const repoName = githubPagesMatch[1];
+    const currentPath = window.location.pathname;
+    if (currentPath.startsWith(`/${repoName}/`)) {
+      return `/${repoName}`;
+    } else if (currentPath === `/${repoName}`) {
+      return `/${repoName}`;
+    }
+  }
+  return '';
+}
+
+/**
+ * Resolve effective base path using settings (BasePath_Mode / BasePath_Value) with URL fallback
+ * Handles three modes:
+ * - 'auto': Auto-detect from URL (default)
+ * - 'set': Use BasePath_Value (can be full URL or path)
+ * - 'relative': Return empty string (use relative paths)
+ */
+export let getEffectiveBasePath = function() {
+  const urlBase = getBasePath();
+  try {
+    const settings = getGlobalVariable('appSettings') || {};
+    const mode = settings.BasePath_Mode || 'auto';
+    
+    if (mode === 'set' && settings.BasePath_Value) {
+      let path = settings.BasePath_Value;
+      // Remove protocol if present (handles full URLs like https://arielberg.github.io/test2)
+      path = path.replace(/^https?:\/\//, '');
+      // Extract path from full URL (e.g., github.io/repo-name/path -> /path)
+      const urlMatch = path.match(/github\.io\/[^/]+(\/.*)?/);
+      if (urlMatch) {
+        return urlMatch[1] || '';
+      }
+      // If it's just a path, use it
+      if (path.startsWith('/')) {
+        return path;
+      }
+      // If it's a domain without path, return empty
+      return '';
+    }
+    
+    if (mode === 'relative') {
+      return '';
+    }
+    
+    // Default: auto-detect
+    return urlBase;
+  } catch (e) {
+    console.warn('Error getting effective base path:', e);
+    return urlBase;
+  }
+}

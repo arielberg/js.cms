@@ -4,19 +4,8 @@ import { commitFiles } from './contentItem.mjs';
 /**
  * Get base path for GitHub Pages (e.g., /test2)
  */
-function getBasePath() {
-  const githubPagesMatch = window.location.href.match(/github\.io\/([^/]+)/);
-  if (githubPagesMatch) {
-    const repoName = githubPagesMatch[1];
-    const currentPath = window.location.pathname;
-    if (currentPath.startsWith(`/${repoName}/`)) {
-      return `/${repoName}`;
-    } else if (currentPath === `/${repoName}`) {
-      return `/${repoName}`;
-    }
-  }
-  return '';
-}
+// Import base path functions from utils
+const getBasePath = utils.getBasePath;
 
 /**
  * Menu Builder - Full menu editor
