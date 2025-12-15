@@ -8,10 +8,11 @@ import { commitFiles } from './contentItem.mjs';
 /**
  * Show global settings interface
  */
-export function settingsManager(parentElement) {
+export async function settingsManager(parentElement) {
     // Render inside a try/catch so if anything goes wrong we still show an error message
     try {
-        const appSettings = utils.getGlobalVariable('appSettings') || {};
+        parentElement.innerHTML = `<div class="alert alert-info">Loading settings...</div>`;
+        const appSettings = await loadAppSettings();
         
         // Default values
         const cssMode = appSettings.CSS_Mode || 'embed'; // 'embed' or 'link'
@@ -317,5 +318,45 @@ async function resetSettings() {
         console.error('Error resetting settings:', error);
         utils.errorHandler(error);
     }
+}
+
+/**
+ * Load appSettings from GitHub API or local fetch (fallback to global variable)
+ */
+async function loadAppSettings() {
+    const gitApi = utils.getGlobalVariable('gitApi');
+    // Try GitHub API first
+    if (gitApi && gitApi.getFile) {
+        try {
+            const currentSettings = await gitApi.getFile('config/appSettings.json');
+            const parsed = JSON.parse(currentSettings);
+            utils.setGlobalVariable('appSettings', parsed);
+            return parsed;
+        } catch (e) {
+            console.warn('GitHub API load failed, trying local fetch', e);
+        }
+    }
+    // Try local fetch with fallbacks
+    const pathsToTry = [
+        'config/appSettings.json',
+        '../config/appSettings.json',
+        '/config/appSettings.json',
+        '../../config/appSettings.json'
+    ];
+    for (const path of pathsToTry) {
+        try {
+            const res = await fetch(path);
+            if (res.ok) {
+                const parsed = await res.json();
+                utils.setGlobalVariable('appSettings', parsed);
+                return parsed;
+            }
+        } catch (e) {
+            continue;
+        }
+    }
+    // Fallback to existing global
+    const existing = utils.getGlobalVariable('appSettings') || {};
+    return existing;
 }
 
