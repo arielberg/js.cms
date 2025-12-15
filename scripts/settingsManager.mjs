@@ -100,6 +100,29 @@ export function settingsManager(parentElement) {
                     </div>
                 </div>
                 
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Branding</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="logoFile">
+                                <strong>Logo</strong>
+                                <small class="text-muted d-block">Upload a logo to replace assets/images/logo.png</small>
+                            </label>
+                            <input type="file" class="form-control-file" id="logoFile" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label for="faviconFile">
+                                <strong>Favicon</strong>
+                                <small class="text-muted d-block">Upload a favicon (.ico, .png) to replace assets/images/favicon.ico</small>
+                            </label>
+                            <input type="file" class="form-control-file" id="faviconFile" accept=".ico,.png,image/x-icon,image/png">
+                        </div>
+                        <small class="text-muted">Files are saved to assets/images/logo.png and assets/images/favicon.ico</small>
+                    </div>
+                </div>
+                
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary btn-lg">
                         💾 Save Settings
@@ -154,6 +177,8 @@ async function saveSettings() {
         const jsMode = document.getElementById('jsMode').value;
         const basePathMode = document.getElementById('basePathMode').value;
         const basePathValue = document.getElementById('basePathValue').value;
+    const logoInput = document.getElementById('logoFile');
+    const faviconInput = document.getElementById('faviconFile');
         
         // Load current appSettings
         const gitApi = utils.getGlobalVariable('gitApi');
@@ -179,12 +204,34 @@ async function saveSettings() {
             delete appSettings.BasePath_Value;
         }
         
+        const files = [];
+        
         // Save to repository
-        const files = [{
+        files.push({
             content: JSON.stringify(appSettings, null, 4),
             filePath: 'config/appSettings.json',
             encoding: 'utf-8'
-        }];
+        });
+        
+        // Upload logo if provided
+        if (logoInput && logoInput.files && logoInput.files[0]) {
+            const logoBase64 = await fileToBase64(logoInput.files[0]);
+            files.push({
+                content: logoBase64,
+                filePath: 'assets/images/logo.png',
+                encoding: 'base64'
+            });
+        }
+        
+        // Upload favicon if provided
+        if (faviconInput && faviconInput.files && faviconInput.files[0]) {
+            const faviconBase64 = await fileToBase64(faviconInput.files[0]);
+            files.push({
+                content: faviconBase64,
+                filePath: 'assets/images/favicon.ico',
+                encoding: 'base64'
+            });
+        }
         
         await commitFiles('Update global settings', files);
         
@@ -202,6 +249,22 @@ async function saveSettings() {
         submitButton.disabled = false;
         submitButton.textContent = originalText;
     }
+}
+
+/**
+ * Convert a File to base64 (without data URI prefix)
+ */
+async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = reader.result || '';
+            const base64 = typeof result === 'string' ? result.split(',').pop() : '';
+            resolve(base64);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+    });
 }
 
 /**
