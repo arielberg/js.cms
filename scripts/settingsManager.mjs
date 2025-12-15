@@ -9,15 +9,17 @@ import { commitFiles } from './contentItem.mjs';
  * Show global settings interface
  */
 export function settingsManager(parentElement) {
-    const appSettings = utils.getGlobalVariable('appSettings') || {};
-    
-    // Default values
-    const cssMode = appSettings.CSS_Mode || 'embed'; // 'embed' or 'link'
-    const jsMode = appSettings.JS_Mode || 'embed'; // 'embed' or 'link'
-    const basePathMode = appSettings.BasePath_Mode || 'auto'; // 'auto', 'set', or 'relative'
-    const basePathValue = appSettings.BasePath_Value || '';
-    
-    parentElement.innerHTML = `
+    // Render inside a try/catch so if anything goes wrong we still show an error message
+    try {
+        const appSettings = utils.getGlobalVariable('appSettings') || {};
+        
+        // Default values
+        const cssMode = appSettings.CSS_Mode || 'embed'; // 'embed' or 'link'
+        const jsMode = appSettings.JS_Mode || 'embed'; // 'embed' or 'link'
+        const basePathMode = appSettings.BasePath_Mode || 'auto'; // 'auto', 'set', or 'relative'
+        const basePathValue = appSettings.BasePath_Value || '';
+        
+        parentElement.innerHTML = `
         <div id="settingsManager" class="settings-manager">
             <div class="manager-header">
                 <h1>Global Settings</h1>
@@ -108,22 +110,32 @@ export function settingsManager(parentElement) {
                 </div>
             </form>
         </div>
-    `;
-    
-    // Show/hide base path value input based on mode
-    document.getElementById('basePathMode').addEventListener('change', (e) => {
-        const valueGroup = document.getElementById('basePathValueGroup');
-        valueGroup.style.display = e.target.value === 'set' ? 'block' : 'none';
-    });
-    
-    // Handle form submission
-    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await saveSettings();
-    });
-    
-    // Make reset function available
-    window.resetSettings = resetSettings;
+        `;
+        
+        // Show/hide base path value input based on mode
+        document.getElementById('basePathMode').addEventListener('change', (e) => {
+            const valueGroup = document.getElementById('basePathValueGroup');
+            valueGroup.style.display = e.target.value === 'set' ? 'block' : 'none';
+        });
+        
+        // Handle form submission
+        document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveSettings();
+        });
+        
+        // Make reset function available
+        window.resetSettings = resetSettings;
+    } catch (error) {
+        console.error('Settings page render failed:', error);
+        parentElement.innerHTML = `
+            <div class="alert alert-danger">
+                <h3>Failed to load Global Settings</h3>
+                <p>${error?.message || 'Unknown error'}</p>
+                <p class="text-muted">Please check console for details.</p>
+            </div>
+        `;
+    }
 }
 
 /**
