@@ -8,6 +8,29 @@
         <script type="text/javascript" src="assets/scripts/main.js"></script>       
         <link rel="icon" href="assets/images/favicon.ico" sizes="16x16">
         <title>${ this.strings.siteName } - ${ this.pageTitle }</title>
+        <style>
+          /* Minimal fallback styling to ensure a clean layout even if assets fail to load */
+          body {
+            margin: 0;
+            padding-top: 72px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f8fafc;
+            color: #111827;
+          }
+          .navbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          .navbar .nav-link { color: #111827; }
+          .navbar .nav-link:hover { color: #2563eb; }
+          .navbar-brand img { max-height: 48px; }
+          .page-wrapper { padding: 24px 16px; }
+          .starter-template { padding: 16px 0; }
+          .container { max-width: 1140px; margin: 0 auto; }
+          a { color: #2563eb; text-decoration: none; }
+          a:hover { text-decoration: underline; }
+          footer { margin-top: 32px; padding: 16px 0; color: #6b7280; border-top: 1px solid #e5e7eb; }
+        </style>
     </head>
 <body class="${ this.pageClass }" data-theme="${ this.theme || 'default' }">
   <header id="header-region">
