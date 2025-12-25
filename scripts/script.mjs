@@ -27,7 +27,7 @@ export function routeToCall(){
   
   // Debug logging
   console.log('routeToCall - hash:', hash, 'configChecked:', loadSteps.configChecked);
- 
+ debugger;
   switch(true) {
     /** Configuration check - redirect to setup if not configured **/
     case !loadSteps.configChecked:
