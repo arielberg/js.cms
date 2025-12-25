@@ -96,9 +96,9 @@ export async function ensureConfigured() {
     
     // Redirect to setup wizard
     // Use full absolute path
-    const initPath = '/init';
+    const initPath = 'init';
     
-    window.location.href = initPath;
+    window.location.href = window.location.href+initPath;
     return false;
   }
   
