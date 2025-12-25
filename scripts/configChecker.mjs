@@ -95,24 +95,8 @@ export async function ensureConfigured() {
     }
     
     // Redirect to setup wizard
-    // Try to construct path relative to current location
-    let initPath = '../init/index.html';
-    
-    // If we're in a subdirectory structure, try to find the right path
-    if (currentPath.includes('/cms-core/')) {
-      initPath = '../init/index.html';
-    } else if (currentPath.includes('/cms-core/')) {
-      // Already handled above
-    } else {
-      // Try absolute path construction for cms-core
-      const pathParts = currentPath.split('/');
-      const cmsCoreIndex = pathParts.findIndex(p => p === 'cms-core');
-      if (cmsCoreIndex > -1) {
-        pathParts[cmsCoreIndex + 1] = 'init';
-        pathParts[cmsCoreIndex + 2] = 'index.html';
-        initPath = pathParts.join('/');
-      }
-    }
+    // Use full absolute path
+    const initPath = '/init';
     
     window.location.href = initPath;
     return false;
